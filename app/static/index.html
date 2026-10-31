@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-  <meta name="theme-color" content="#f4f9fa" />
+  <meta name="theme-color" content="#f7f7f2" />
   <title>Ventanilla · Trámites y leyes de México</title>
-  <link rel="preload" href="/static/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="/static/styles.css?v=11" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235ba9b5'/><path d='M9 9l7 15 7-15' fill='none' stroke='%2314343b' stroke-width='3' stroke-linejoin='round'/></svg>" />
+  <link rel="preload" href="/presentacion/assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/presentacion/assets/fonts/barlow-sc-800.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/static/styles.css?v=12" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path fill='%23db817a' stroke='%2314201d' stroke-width='3' d='M2 2h28v28H2z'/><path d='M9 9l7 15 7-15' fill='none' stroke='%2314201d' stroke-width='3'/></svg>" />
 </head>
 <body>
+  <div class="chat-window">
   <header class="topbar">
     <div class="brand">
       <div class="logo" aria-hidden="true">V</div>
@@ -35,7 +37,7 @@
           <h2>Menos dudas.<br>Más claridad.</h2>
         </div>
         <p class="lead">Pregunta sobre trámites, derechos o documentos. Te ayudo a orientarte con fuentes oficiales.</p>
-        <img class="welcome-art" src="/static/images/welcome.webp" width="720" height="480" alt="" aria-hidden="true" decoding="async" />
+        <img class="welcome-art" src="/static/images/welcome-chat.svg" width="260" height="200" alt="" aria-hidden="true" decoding="async" />
       </div>
       <details id="demo-notice" class="demo-notice" hidden>
         <summary>
@@ -80,6 +82,7 @@
       <button id="send" type="submit" class="primary" aria-label="Enviar">Enviar</button>
     </form>
   </footer>
+  </div>
 
   <script src="/static/app.js?v=13" type="module"></script>
 </body>

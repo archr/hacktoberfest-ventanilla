@@ -51,6 +51,11 @@ class Settings(BaseSettings):
     max_history_messages: int = 20
     max_tool_rounds: int = 3
     timezone: str = "America/Mexico_City"
+    max_request_bytes: int = 65536
+    max_concurrent_requests: int = 2
+    requests_per_minute: int = 30
+    document_retention_hours: float = 24
+    demo_mode: bool = False
 
     @field_validator("llm_reasoning_effort", "embed_base_url", mode="before")
     @classmethod

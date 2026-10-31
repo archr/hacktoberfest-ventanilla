@@ -383,10 +383,13 @@ async function send(text) {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: state.history, conversation_id: state.conversationId }),
+      body: JSON.stringify({ messages: state.history.slice(-20), conversation_id: state.conversationId }),
       signal: state.controller.signal,
     });
-    if (!res.ok || !res.body) throw new Error(`Error ${res.status}`);
+    if (!res.ok || !res.body) {
+      const detail = await res.json().catch(() => ({}));
+      throw new Error(detail.message || `Error ${res.status}`);
+    }
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = "";
@@ -455,6 +458,11 @@ async function send(text) {
 async function loadConfig() {
   try {
     const cfg = await (await fetch("/api/config")).json();
+    if (cfg.demo) {
+      const notice = $("#demo-notice");
+      notice.hidden = false;
+      notice.textContent = `Demo pública: usa datos ficticios. El chat se guarda en este navegador; los documentos se eliminan del servidor después de ${cfg.document_retention_hours} horas. Quien tenga el enlace puede descargarlos mientras estén vigentes.`;
+    }
     const sug = $("#suggestions");
     sug.innerHTML = "";
     (cfg.suggestions || []).forEach((q) => {
@@ -496,7 +504,7 @@ function init() {
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
       e.preventDefault();
-      $("#composer").requestSubmit();
+      if (!state.busy) $("#composer").requestSubmit();
     }
   });
   $("#composer").addEventListener("submit", (e) => {

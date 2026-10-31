@@ -13,6 +13,7 @@ import json
 import logging
 import mimetypes
 import re
+import time
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -64,12 +65,14 @@ class DocumentConnector:
         max_bytes: int = 20 * 1024 * 1024,
         transport: httpx.AsyncBaseTransport | None = None,
         poll_interval_s: float = 1.0,
+        retention_hours: float = 24,
     ) -> None:
         self.registry = registry
         self.storage_dir = storage_dir
         self.max_bytes = max_bytes
         self.transport = transport
         self.poll_interval_s = poll_interval_s
+        self.retention_seconds = retention_hours * 3600
         storage_dir.mkdir(parents=True, exist_ok=True)
 
     def _client(self, timeout: float) -> httpx.AsyncClient:
@@ -189,7 +192,22 @@ class DocumentConnector:
         file_path = self.storage_dir / f"{doc_id}.bin"
         if not (meta_path.exists() and file_path.exists()):
             return None
+        if meta_path.stat().st_mtime < time.time() - self.retention_seconds:
+            meta_path.unlink(missing_ok=True)
+            file_path.unlink(missing_ok=True)
+            return None
         return file_path, GeneratedDocument(**json.loads(meta_path.read_text()))
+
+    def purge_expired(self) -> None:
+        cutoff = time.time() - self.retention_seconds
+        for path in self.storage_dir.iterdir():
+            if path.suffix not in {".bin", ".json"} or not _ID.fullmatch(path.stem):
+                continue
+            try:
+                if path.stat().st_mtime < cutoff:
+                    path.unlink(missing_ok=True)
+            except FileNotFoundError:
+                pass  # Una descarga puede haber eliminado el archivo al vencer.
 
 
 def _origin(url: str) -> tuple[str, str, int | None]:

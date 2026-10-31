@@ -1,0 +1,56 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:?Configura la URL de Ollama accesible desde Docker}
+      LLM_MODEL: ${LLM_MODEL:-qwen3.8:27b-mlx}
+      LLM_API_KEY: ${LLM_API_KEY:-ollama}
+      LLM_REASONING_EFFORT: ${LLM_REASONING_EFFORT:-none}
+      EMBED_BASE_URL: ${EMBED_BASE_URL:-}
+      EMBED_MODEL: ${EMBED_MODEL:-qwen3-embedding:0.6b}
+      DOC_SERVICE_URL: http://documents:8701
+      CONFIRM_DOCUMENTS: "true"
+      DATA_DIR: /app/data
+      AUTO_INGEST: ${AUTO_INGEST:-true}
+      MAX_REQUEST_BYTES: "65536"
+      MAX_CONCURRENT_REQUESTS: "2"
+      REQUESTS_PER_MINUTE: "30"
+      DOCUMENT_RETENTION_HOURS: "24"
+      DEMO_MODE: "true"
+    volumes:
+      - app-data:/app/data
+    expose:
+      - "8700"
+    depends_on:
+      documents:
+        condition: service_healthy
+    mem_limit: 1g
+    cpus: 2
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+  documents:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      AUTO_INGEST: "false"
+      MOCK_DOC_INLINE: "true"
+    command: ["python", "-m", "uvicorn", "mock_doc_service.main:app", "--host", "0.0.0.0", "--port", "8701"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8701/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    mem_limit: 256m
+    cpus: 1
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+volumes:
+  app-data:

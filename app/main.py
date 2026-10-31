@@ -5,10 +5,11 @@ Ejecutar:  uvicorn app.main:app --port 8700
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Any
 
@@ -16,12 +17,13 @@ import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .chat import ChatService, document_payload
 from .documents.connector import DocumentConnector, DocumentServiceError, DocumentValidationError
 from .documents.registry import DocumentRegistry
 from .llm import OpenAICompatibleChat, OpenAICompatibleEmbedder
+from .limits import RequestLimits, validate_document_data
 from .rag.retriever import Retriever
 from .rag.rewrite import QueryRewriter
 from .rag.store import IndexStore
@@ -44,7 +46,11 @@ SUGGESTIONS = [
 async def lifespan(app: FastAPI):
     s = get_settings()
     registry = DocumentRegistry.from_file(s.documents_file)
-    connector = DocumentConnector(registry, s.generated_dir, max_bytes=s.max_document_bytes)
+    connector = DocumentConnector(
+        registry, s.generated_dir, max_bytes=s.max_document_bytes,
+        retention_hours=s.document_retention_hours,
+    )
+    await asyncio.to_thread(connector.purge_expired)
     llm = OpenAICompatibleChat(
         s.llm_base_url,
         s.llm_model,
@@ -78,12 +84,29 @@ async def lifespan(app: FastAPI):
         rewriter=QueryRewriter(llm) if s.rag_query_rewrite else None,
         confirm_documents=s.confirm_documents,
     )
-    yield
-    await llm.aclose()
-    store.close()
+    async def cleanup_documents():
+        while True:
+            await asyncio.sleep(3600)
+            await asyncio.to_thread(connector.purge_expired)
+
+    cleanup = asyncio.create_task(cleanup_documents())
+    try:
+        yield
+    finally:
+        cleanup.cancel()
+        with suppress(asyncio.CancelledError):
+            await cleanup
+        await llm.aclose()
+        store.close()
 
 
 app = FastAPI(title="Ventanilla — chat de trámites y leyes (MVP)", version="0.1.0", lifespan=lifespan)
+app.add_middleware(
+    RequestLimits,
+    max_bytes=get_settings().max_request_bytes,
+    concurrent=get_settings().max_concurrent_requests,
+    per_minute=get_settings().requests_per_minute,
+)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -106,12 +129,20 @@ def config(request: Request) -> dict:
         "documents": st.registry.summary(),
         "suggestions": SUGGESTIONS,
         "index": st.store.stats(),
+        "demo": st.settings.demo_mode,
+        "document_retention_hours": st.settings.document_retention_hours,
     }
 
 
 @app.get("/api/sources")
 def sources(request: Request) -> dict:
     return {"sources": request.app.state.store.list_documents()}
+
+
+@app.get("/healthz", include_in_schema=False)
+async def liveness() -> dict:
+    # El reinicio del contenedor no debe depender de que la Mac Studio esté encendida.
+    return {"status": "ok"}
 
 
 @app.get("/api/health")
@@ -161,6 +192,11 @@ class GenerateRequest(BaseModel):
     data: dict[str, Any]
     conversation_id: str | None = Field(default=None, max_length=64)
 
+    @field_validator("data")
+    @classmethod
+    def bounded_data(cls, value):
+        return validate_document_data(value)
+
 
 @app.post("/api/documents")
 async def generate_document(req: GenerateRequest, request: Request):
@@ -186,7 +222,10 @@ def download(doc_id: str, request: Request) -> FileResponse:
     if found is None:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
     path, meta = found
-    return FileResponse(path, media_type=meta.mime_type, filename=meta.filename)
+    return FileResponse(
+        path, media_type=meta.mime_type, filename=meta.filename,
+        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"},
+    )
 
 
 def _sse(event: str, data: dict) -> str:

@@ -1,0 +1,14 @@
+*
+!requirements.txt
+!app/
+!app/**
+!mock_doc_service/
+!mock_doc_service/**
+!config/
+!config/sources.yaml
+!config/document_services.yaml
+!scripts/
+!scripts/container-start.sh
+**/__pycache__/
+# Integración de dictámenes en desarrollo en otro hilo; aún no forma parte del MVP.
+app/dictamen/

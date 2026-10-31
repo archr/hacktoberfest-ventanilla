@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 import sqlite3
+import threading
+from functools import wraps
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -98,19 +100,30 @@ def fts_query(question: str) -> str | None:
     return " OR ".join(terms[:24])
 
 
+def _synchronized(method):
+    @wraps(method)
+    def guarded(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return guarded
+
+
 class IndexStore:
     def __init__(self, path: Path) -> None:
         self.path = path
+        self._lock = threading.RLock()
         path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.conn.executescript(SCHEMA)
 
+    @_synchronized
     def close(self) -> None:
         self.conn.close()
 
     # --- escritura (ingesta) ---
+    @_synchronized
     def replace_document(
         self,
         doc: dict,
@@ -137,6 +150,7 @@ class IndexStore:
             self.conn.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild')")
 
     # --- lectura ---
+    @_synchronized
     def stats(self) -> dict:
         docs = self.conn.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
         chunks = self.conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
@@ -145,6 +159,7 @@ class IndexStore:
         ).fetchone()[0]
         return {"documents": docs, "chunks": chunks, "chunks_with_embeddings": with_emb}
 
+    @_synchronized
     def list_documents(self) -> list[dict]:
         rows = self.conn.execute(
             "SELECT d.id, d.title, d.short_title, d.institution, d.url, d.version, d.fetched_at,"
@@ -153,6 +168,7 @@ class IndexStore:
         ).fetchall()
         return [dict(r) for r in rows]
 
+    @_synchronized
     def load_embeddings(self) -> tuple[np.ndarray, np.ndarray]:
         rows = self.conn.execute(
             "SELECT id, embedding FROM chunks WHERE embedding IS NOT NULL ORDER BY id"
@@ -163,6 +179,7 @@ class IndexStore:
         matrix = np.vstack([np.frombuffer(r["embedding"], dtype=np.float32) for r in rows])
         return ids, matrix
 
+    @_synchronized
     def bm25(self, question: str, limit: int) -> list[int]:
         q = fts_query(question)
         if not q:
@@ -174,6 +191,7 @@ class IndexStore:
         ).fetchall()
         return [r[0] for r in rows]
 
+    @_synchronized
     def get_chunks(self, ids: list[int]) -> dict[int, ChunkRecord]:
         if not ids:
             return {}

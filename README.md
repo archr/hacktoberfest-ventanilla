@@ -70,6 +70,8 @@ ollama pull qwen3-embedding:0.6b   # el modelo de chat ya debe existir
 
 ## Configuración (`.env`)
 
+Para una demo en Docker/Coolify, consulta [Despliegue](docs/deployment.md).
+
 | Variable | Por defecto | Descripción |
 |---|---|---|
 | `LLM_BASE_URL` | `http://localhost:11434/v1` | API compatible con OpenAI (Ollama: `.../v1`) |
@@ -154,9 +156,11 @@ tests/               pruebas (pytest)
 - **Latencia**: con el modelo de 27B, el primer token tarda ~10-20 s, la mayor parte en
   procesar el prompt con los fragmentos. Opciones: bajar `RAG_TOP_K`, fragmentos más chicos
   o un modelo MoE más rápido.
-- **Sin autenticación ni límites de uso.** Antes de exponerlo públicamente: auth, rate
-  limiting, retención/borrado de `data/generated/` (contiene datos personales), registro y
-  aviso de privacidad.
+- **Demo sin cuentas:** usa datos ficticios. El servidor limita tamaño, concurrencia y
+  frecuencia de peticiones; los documentos caducan a las 24 horas y no se cachean.
+  Cualquiera que tenga el enlace de descarga puede usarlo hasta que caduque. El historial
+  queda en el almacenamiento local del navegador. Para datos reales hacen falta
+  autenticación, autorización por usuario y un aviso de privacidad acorde al servicio.
 - La tarjeta de confirmación es la única salvaguarda antes de enviar datos personales al
   servicio externo. No la desactives (`CONFIRM_DOCUMENTS=false`) en producción.
 

@@ -6,6 +6,7 @@ Ejecutar:  uvicorn mock_doc_service.main:app --port 8701
 
 from __future__ import annotations
 
+import base64
 import os
 import re
 import uuid
@@ -15,7 +16,9 @@ from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from app.limits import RequestLimits, validate_document_data
 
 from .templates import TEMPLATES
 
@@ -23,12 +26,18 @@ STORAGE = Path(os.environ.get("MOCK_DOC_STORAGE", Path(__file__).resolve().paren
 _ID = re.compile(r"^[0-9a-f]{32}$")
 
 app = FastAPI(title="Servicio simulado de documentos", version="0.1.0")
+app.add_middleware(RequestLimits)
 
 
 class DocumentRequest(BaseModel):
     type: str
     data: dict[str, Any]
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("data")
+    @classmethod
+    def bounded_data(cls, value):
+        return validate_document_data(value)
 
 
 def _check_auth(authorization: str | None) -> None:
@@ -49,6 +58,11 @@ def create_document(req: DocumentRequest, authorization: str | None = Header(def
     if render is None:
         raise HTTPException(status_code=422, detail=f"Tipo de documento no soportado: {req.type}")
     content = render(req.data)
+    if os.environ.get("MOCK_DOC_INLINE") == "true":
+        return {
+            "status": "ready", "content_base64": base64.b64encode(content).decode(),
+            "filename": f"{req.type}_{date.today().isoformat()}.pdf", "mime_type": "application/pdf",
+        }
     STORAGE.mkdir(parents=True, exist_ok=True)
     doc_id = uuid.uuid4().hex
     (STORAGE / f"{doc_id}.pdf").write_bytes(content)

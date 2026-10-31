@@ -1,5 +1,5 @@
 // Ventanilla — frontend del chat (sin dependencias).
-import { VoiceDictation } from "./voice.mjs?v=1";
+import { VoiceDictation } from "./voice.mjs?v=2";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);

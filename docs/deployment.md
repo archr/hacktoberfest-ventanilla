@@ -75,7 +75,9 @@ recibe ni guarda audio: el texto permanece en el borrador hasta que la persona p
 
 - Pulsar el micrófono inicia la escucha; pulsarlo de nuevo termina y permite revisar.
 - «Cancelar» restaura el borrador anterior. Los resultados tardíos se descartan.
-- La escucha se limita a un minuto y se detiene al ocultar o abandonar la página.
+- La escucha se detiene automáticamente a los 3 segundos desde que comienza el
+  reconocimiento, sin contar la espera del permiso. También se detiene al ocultar o
+  abandonar la página.
 - Los errores de permisos, silencio o red no bloquean el teclado.
 - No se reinicia automáticamente el micrófono cuando el navegador termina una sesión.
 

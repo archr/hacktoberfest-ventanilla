@@ -134,9 +134,12 @@ test("a stalled permission request times out and ignores late results", () => {
   assert.equal(r.aborts, 2);
 });
 
-test("one-minute limit stops recognition, and stalled finalization is aborted", () => {
-  const h = harness(); h.voice.start(""); const r = h.instances[0]; r.onstart();
-  r.result(["mi pregunta", false]); h.expire(60_000);
+test("three-second limit starts after permission, stops recognition and preserves the draft", () => {
+  const h = harness(); h.voice.start(""); const r = h.instances[0];
+  assert.deepEqual([...h.timers.values()].map(timer => timer.delay), [20_000]);
+  r.onstart();
+  assert.deepEqual([...h.timers.values()].map(timer => timer.delay), [3_000]);
+  r.result(["mi pregunta", false]); h.expire(3_000);
   assert.equal(r.stops, 1);
   assert.equal(h.lastState().phase, "stopping");
   h.expire(5_000);

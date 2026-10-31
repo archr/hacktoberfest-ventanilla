@@ -55,8 +55,8 @@ export class VoiceDictation {
       }
       if (session.phase !== "starting") return;
       session.phase = "listening";
-      this.update("listening", "Escuchando… pulsa el micrófono para terminar.");
-      this.timer(session, () => this.stop(), 60_000);
+      this.update("listening", "Escuchando… se detendrá automáticamente a los 3 segundos.");
+      this.timer(session, () => this.stop(), 3_000);
     };
     recognition.onresult = (event) => {
       if (this.session !== session) return;

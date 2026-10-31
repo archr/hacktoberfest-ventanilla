@@ -428,6 +428,26 @@ body {
 .closing .qr-small span { font: 700 17px/1.3 var(--mono); text-align: center; word-break: break-all; }
 .thanks { margin-top: 56px; font: 800 64px/1 var(--display); letter-spacing: -.02em; color: var(--gold); }
 
+/* ---------- Versión de seis diapositivas ---------- */
+.office-problem .display { font-size: 110px; }
+.office-problem .lead { margin-top: 24px; font-size: 30px; }
+.office-problem .qgrid { margin-top: 28px; }
+.office-problem .q { padding: 22px 24px; }
+.office-problem .q span { font-size: 16px; }
+.office-problem .q h3 { margin: 0 0 10px; font: 800 34px/1.05 var(--display); }
+.office-problem .q p { margin: 0; font: 400 24px/1.35 var(--sans); }
+.problem-takeaway { margin: 28px 0 0; padding-top: 20px; border-top: var(--border); font: 400 28px/1.35 var(--sans); }
+.solution-steps { margin-top: 52px; }
+.solution-summary { margin: 32px 0 0; font: 400 28px/1.4 var(--sans); }
+.closing-summary .lead { font-size: 32px; margin-top: 28px; }
+.closing-summary .todo { margin-top: 32px; gap: 26px; }
+.closing-summary .todo small { font: 400 23px/1.35 var(--sans); }
+.closing-invite { margin: 36px 0 0; font: 400 30px/1.4 var(--sans); }
+.closing-summary .qr-card { align-self: center; margin-top: 0; }
+.closing-summary .qr-card a { color: inherit; text-underline-offset: 5px; }
+.closing-summary .qr-card .chips { margin-top: 0; }
+.qr-invite { margin: 0; font: 400 24px/1.4 var(--sans); text-align: center; }
+
 /* ---------- Navegación y notas ---------- */
 .nav {
   position: fixed; right: 18px; bottom: 16px; z-index: 10;

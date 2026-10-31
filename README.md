@@ -300,7 +300,9 @@ evaluación de respuestas, accesibilidad, despliegue).
 La presentación del proyecto para Hacktoberfest 2026 vive en
 [`app/presentacion/`](app/presentacion/index.html) y la app la sirve junto al chat en
 **`/presentacion/`** (en local: http://127.0.0.1:8700/presentacion/ tras `./scripts/dev.sh`).
-Su diapositiva «Demo en vivo» muestra el chat real de la misma app.
+La versión breve tiene **6 diapositivas**: portada, burocracia y visitas a oficinas,
+solución, demo en vivo, cómo funciona y próximos pasos. La cuarta muestra el chat
+real de la misma app; cada diapositiva incluye notas del presentador.
 
 Usa ← → para avanzar, `N` para las notas del presentador y `F` para pantalla completa.
 Dentro de la demo en vivo, las flechas escriben en el chat: usa `Esc` y luego →, o

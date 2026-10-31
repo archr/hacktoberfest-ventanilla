@@ -1,6 +1,26 @@
 // Ventanilla — frontend del chat (sin dependencias).
+import { VoiceDictation } from "./voice.mjs?v=1";
+
 const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
 const STORE_KEY = "ventanilla.conversation.v1";
+let voice;
+let voiceSupported = false;
+let voicePhase = "idle";
+
+function syncVoiceControls() {
+  const active = voice?.active || false;
+  $("#input").readOnly = active;
+  $("#send").disabled = active;
+  $("#dictate").disabled = !voiceSupported || state.busy || voicePhase === "stopping";
+  $("#dictate").classList.toggle("listening", active);
+  $("#dictate").setAttribute("aria-pressed", String(active));
+  const label = active ? (voicePhase === "starting" ? "Cancelar dictado" : "Terminar dictado") : "Dictar mensaje por voz";
+  $("#dictate").setAttribute("aria-label", label);
+  $("#dictate").title = label;
+  $("#voice-cancel").hidden = !active;
+  $$("#suggestions button").forEach((button) => { button.disabled = active || state.busy; });
+}
 
 const state = {
   conversationId: null,
@@ -339,7 +359,8 @@ function renderAll() {
   box.innerHTML = "";
   state.transcript.forEach((e) => box.appendChild(renderEntry(e)));
   $("#welcome").style.display = state.transcript.length ? "none" : "";
-  scrollDown(true);
+  if (state.transcript.length) scrollDown(true);
+  else $("#chat").scrollTop = 0;
 }
 
 function scrollDown(force = false) {
@@ -356,11 +377,13 @@ function setBusy(busy) {
   btn.textContent = busy ? "Detener" : "Enviar";
   btn.setAttribute("aria-label", busy ? "Detener respuesta" : "Enviar mensaje");
   btn.classList.toggle("stop", busy);
+  syncVoiceControls();
 }
 
 async function send(text) {
   text = text.trim();
-  if (!text || state.busy) return;
+  if (!text || state.busy || voice?.active) return;
+  voice?.cancel({ silent: true });
   $("#welcome").style.display = "none";
   const userEntry = { id: uid(), role: "user", text };
   state.transcript.push(userEntry);
@@ -499,6 +522,7 @@ async function loadConfig() {
       b.addEventListener("click", () => send(q));
       sug.appendChild(b);
     });
+    syncVoiceControls();
     $("#doc-types").innerHTML = (cfg.documents || []).map((d) => `<li title="${escapeHtml(d.description)}">${escapeHtml(d.title)}</li>`).join("");
     $("#document-count").textContent = (cfg.documents || []).length;
     const src = await (await fetch("/api/sources")).json();
@@ -563,8 +587,40 @@ function init() {
     const maxHeight = parseFloat(getComputedStyle(input).maxHeight) || 160;
     input.style.height = `${Math.min(input.scrollHeight, maxHeight)}px`;
   };
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  voiceSupported = window.isSecureContext && typeof Recognition === "function";
+  voice = new VoiceDictation({
+    Recognition: voiceSupported ? Recognition : null,
+    onText: (text) => { input.value = text; autosize(); },
+    onState: ({ phase, message }) => {
+      voicePhase = phase;
+      $("#voice-status").textContent = message;
+      $("#voice-feedback").hidden = !message;
+      $("#voice-feedback").classList.toggle("error", phase === "error");
+      syncVoiceControls();
+    },
+  });
+  if (!voiceSupported) {
+    $("#voice-help-title").textContent = "Dictado no disponible en este navegador";
+    $("#voice-privacy").textContent = window.isSecureContext
+      ? "Este navegador no ofrece dictado por voz. Puedes escribir o usar el micrófono de tu teclado, si lo tiene."
+      : "El dictado necesita una conexión HTTPS. En esta página puedes seguir escribiendo.";
+    input.placeholder = "Escribe tu pregunta…";
+  }
+  syncVoiceControls();
+  $("#dictate").addEventListener("click", () => {
+    if (state.busy || !voiceSupported) return;
+    if (voice.active) voice.stop();
+    else voice.start(input.value, input.selectionStart, input.selectionEnd);
+  });
+  $("#voice-cancel").addEventListener("click", () => voice.cancel());
+  document.addEventListener("visibilitychange", () => { if (document.hidden) voice.interrupt(); });
+  window.addEventListener("pagehide", () => voice.interrupt());
   setupViewport(autosize);
-  input.addEventListener("input", autosize);
+  input.addEventListener("input", () => {
+    autosize();
+    if (!voice.active) voice.cancel({ silent: true });
+  });
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
       // En el teclado móvil, Enter añade una línea. El botón envía el mensaje.
@@ -576,12 +632,14 @@ function init() {
   $("#composer").addEventListener("submit", (e) => {
     e.preventDefault();
     if (state.busy) { state.controller?.abort(); return; }
+    if (voice.active) return;
     const text = input.value;
     input.value = "";
     autosize();
     send(text);
   });
   $("#new-chat").addEventListener("click", () => {
+    voice.cancel({ silent: true });
     if (state.busy) state.controller?.abort();
     Object.assign(state, { conversationId: null, history: [], transcript: [] });
     localStorage.removeItem(STORE_KEY);

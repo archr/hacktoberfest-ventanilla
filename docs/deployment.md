@@ -62,6 +62,36 @@ se cargan en memoria. Al cambiar el modelo de embeddings, reconstruye todo el í
 El chat depende de que el servidor de Qwen y su red privada estén disponibles. `/healthz`
 no consulta Qwen para evitar reinicios inútiles cuando la máquina del modelo está apagada.
 
+## Dictado por voz
+
+El micrófono usa `SpeechRecognition` o `webkitSpeechRecognition` del navegador, en
+español (`es-MX`). Requiere HTTPS (o localhost), permiso del micrófono y que el navegador
+ofrezca un servicio de reconocimiento operativo. La compatibilidad se detecta al cargar
+la página; cuando no está disponible, se conserva la escritura y se muestra una explicación.
+
+El proveedor del navegador puede procesar el audio en sus servidores. Ventanilla no
+recibe ni guarda audio: el texto permanece en el borrador hasta que la persona pulsa
+**Enviar**. Esta información está accesible en «Sobre el dictado por voz».
+
+- Pulsar el micrófono inicia la escucha; pulsarlo de nuevo termina y permite revisar.
+- «Cancelar» restaura el borrador anterior. Los resultados tardíos se descartan.
+- La escucha se limita a un minuto y se detiene al ocultar o abandonar la página.
+- Los errores de permisos, silencio o red no bloquean el teclado.
+- No se reinicia automáticamente el micrófono cuando el navegador termina una sesión.
+
+Pruebas del controlador, sin dependencias ni acceso al micrófono:
+
+```sh
+node --test tests/voice.test.mjs
+```
+
+La prueba manual final debe hacerse desde HTTPS con un micrófono real: permitir el
+acceso, dictar una frase, detener, corregir y enviar; después comprobar la cancelación
+y el permiso denegado. Las pruebas simuladas no miden la precisión ni la disponibilidad
+del servicio de voz del dispositivo.
+
+Referencia: [SpeechRecognition en MDN](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition).
+
 ## Docker Compose sin Coolify
 
 Configura `.env` desde `.env.example` y una URL de Ollama alcanzable. Para publicar el chat

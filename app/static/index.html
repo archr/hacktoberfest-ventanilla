@@ -2,9 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#f6f4f1" />
   <title>Ventanilla · Trámites y leyes de México</title>
-  <link rel="stylesheet" href="/static/styles.css?v=3" />
+  <link rel="stylesheet" href="/static/styles.css?v=5" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%239f2241'/><text x='16' y='22' font-size='17' text-anchor='middle' fill='white' font-family='Georgia'>V</text></svg>" />
 </head>
 <body>
@@ -17,8 +18,11 @@
       </div>
     </div>
     <div class="top-actions">
-      <span id="status" class="status" title="Estado del sistema">Conectando…</span>
-      <button id="new-chat" class="ghost" type="button">Nueva conversación</button>
+      <span id="status" class="status" role="status" title="Estado del sistema">Conectando…</span>
+      <button id="new-chat" class="ghost" type="button" aria-label="Nueva conversación" title="Nueva conversación">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        <span class="label-wide">Nueva conversación</span><span class="label-short" aria-hidden="true">Nueva</span>
+      </button>
     </div>
   </header>
 
@@ -44,12 +48,12 @@
 
   <footer class="composer-wrap">
     <form id="composer" class="composer" autocomplete="off">
-      <textarea id="input" rows="1" placeholder="Escribe tu pregunta, por ejemplo: ¿cómo saco mi constancia de situación fiscal?" aria-label="Mensaje"></textarea>
+      <textarea id="input" rows="1" placeholder="Escribe tu pregunta…" aria-label="Mensaje" enterkeyhint="enter"></textarea>
       <button id="send" type="submit" class="primary" aria-label="Enviar">Enviar</button>
     </form>
     <p class="disclaimer">Información orientativa generada por IA; no sustituye asesoría legal. Verifica siempre en el portal oficial de la dependencia.</p>
   </footer>
 
-  <script src="/static/app.js?v=4" type="module"></script>
+  <script src="/static/app.js?v=5" type="module"></script>
 </body>
 </html>

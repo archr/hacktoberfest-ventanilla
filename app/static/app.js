@@ -82,9 +82,9 @@ function renderMarkdown(md, citeIds = new Set()) {
       const rows = [];
       while (i + 1 < lines.length && /^\s*\|.*\|\s*$/.test(lines[i + 1])) rows.push(cells(lines[++i]));
       out.push(
-        `<table><thead><tr>${head.map((h) => `<th>${inline(h, citeIds)}</th>`).join("")}</tr></thead><tbody>` +
+        `<div class="table-scroll" role="region" aria-label="Tabla de la respuesta; desliza para ver más columnas" tabindex="0"><table><thead><tr>${head.map((h) => `<th>${inline(h, citeIds)}</th>`).join("")}</tr></thead><tbody>` +
           rows.map((r) => `<tr>${r.map((c) => `<td>${inline(c, citeIds)}</td>`).join("")}</tr>`).join("") +
-          "</tbody></table>",
+          "</tbody></table></div>",
       );
       continue;
     }
@@ -343,6 +343,7 @@ function renderAll() {
 }
 
 function scrollDown(force = false) {
+  if (!force && document.activeElement?.closest(".confirm-card")) return;
   const c = $("#chat");
   const near = c.scrollHeight - c.scrollTop - c.clientHeight < 160;
   if (force || near) c.scrollTop = c.scrollHeight;
@@ -353,6 +354,7 @@ function setBusy(busy) {
   state.busy = busy;
   const btn = $("#send");
   btn.textContent = busy ? "Detener" : "Enviar";
+  btn.setAttribute("aria-label", busy ? "Detener respuesta" : "Enviar mensaje");
   btn.classList.toggle("stop", busy);
 }
 
@@ -484,12 +486,41 @@ async function loadConfig() {
     const h = await (await fetch("/api/health")).json();
     const st = $("#status");
     st.className = `status ${h.llm.ok ? "ok" : "bad"}`;
-    st.textContent = h.llm.ok ? `${h.llm.model} · ${h.index.chunks.toLocaleString("es-MX")} fragmentos` : "LLM no disponible";
-    st.title = h.llm.ok ? "Modelo y tamaño del índice" : h.llm.detail;
+    st.textContent = h.llm.ok ? "Disponible" : "No disponible";
+    st.title = h.llm.ok ? `${h.llm.model} · ${h.index.chunks.toLocaleString("es-MX")} fragmentos` : h.llm.detail;
   } catch {
     $("#status").className = "status bad";
     $("#status").textContent = "Sin conexión";
   }
+}
+
+// El teclado de Safari puede reducir solo el viewport visual. Ajusta la altura
+// del chat a ese espacio sin bloquear el zoom ni desplazar el formulario entero.
+function setupViewport(autosize) {
+  const viewport = window.visualViewport;
+  let frame = null;
+  const resize = () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      if (viewport && Math.abs(viewport.scale - 1) > 0.01) return;
+      const chat = $("#chat");
+      const atBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 40;
+      if (viewport) document.documentElement.style.setProperty("--app-height", `${viewport.height}px`);
+      autosize();
+      const active = document.activeElement;
+      if (active?.closest(".confirm-card")) {
+        const field = active.getBoundingClientRect();
+        const area = chat.getBoundingClientRect();
+        if (field.top < area.top + 16) chat.scrollTop -= area.top + 16 - field.top;
+        else if (field.bottom > area.bottom - 16) chat.scrollTop += field.bottom - area.bottom + 16;
+      } else if (atBottom) {
+        scrollDown(true);
+      }
+    });
+  };
+  window.addEventListener("resize", resize);
+  viewport?.addEventListener("resize", resize);
+  resize();
 }
 
 function init() {
@@ -499,10 +530,18 @@ function init() {
   loadConfig();
 
   const input = $("#input");
-  const autosize = () => { input.style.height = "auto"; input.style.height = `${Math.min(input.scrollHeight, 180)}px`; };
+  const touchInput = () => matchMedia("(pointer: coarse)").matches;
+  const autosize = () => {
+    input.style.height = "auto";
+    const maxHeight = parseFloat(getComputedStyle(input).maxHeight) || 160;
+    input.style.height = `${Math.min(input.scrollHeight, maxHeight)}px`;
+  };
+  setupViewport(autosize);
   input.addEventListener("input", autosize);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+      // En el teclado móvil, Enter añade una línea. El botón envía el mensaje.
+      if (touchInput() && !e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       if (!state.busy) $("#composer").requestSubmit();
     }
@@ -520,9 +559,9 @@ function init() {
     Object.assign(state, { conversationId: null, history: [], transcript: [] });
     localStorage.removeItem(STORE_KEY);
     renderAll();
-    input.focus();
+    if (!touchInput()) input.focus();
   });
-  input.focus();
+  if (!touchInput()) input.focus();
 }
 
 init();

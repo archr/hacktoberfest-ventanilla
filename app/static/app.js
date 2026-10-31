@@ -1,6 +1,5 @@
 // Ventanilla — frontend del chat (sin dependencias).
-import { VoiceDictation } from "./voice.mjs?v=4";
-import { createSilenceMonitor } from "./silence.mjs?v=1";
+import { VoiceDictation } from "./voice.mjs?v=5";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -17,7 +16,7 @@ function syncVoiceControls() {
   $("#dictate").disabled = !voiceSupported || state.busy || voicePhase === "stopping";
   $("#dictate").classList.toggle("listening", active);
   $("#dictate").setAttribute("aria-pressed", String(active));
-  const label = active ? (voicePhase === "starting" ? "Cancelar dictado" : "Terminar dictado") : (voiceUnavailableReason || "Dictar mensaje por voz");
+  const label = active ? (voicePhase === "starting" ? "Cancelar dictado" : "Detener dictado") : (voiceUnavailableReason || "Dictar mensaje por voz");
   $("#dictate").setAttribute("aria-label", label);
   $("#dictate").title = label;
   $("#voice-cancel").hidden = !active;
@@ -1106,7 +1105,6 @@ function init() {
   voiceSupported = window.isSecureContext && typeof Recognition === "function";
   voice = new VoiceDictation({
     Recognition: voiceSupported ? Recognition : null,
-    createSilenceMonitor,
     onText: (text) => { input.value = text; autosize(); },
     onState: ({ phase, message }) => {
       voicePhase = phase;

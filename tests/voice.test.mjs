@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { VoiceDictation } from "../app/static/voice.mjs";
 
-function harness({ throwsOnStart = false, createSilenceMonitor } = {}) {
+function harness({ throwsOnStart = false } = {}) {
   const instances = [], states = [], texts = [], timers = new Map();
   let timerId = 0;
   class Recognition {
@@ -15,7 +15,6 @@ function harness({ throwsOnStart = false, createSilenceMonitor } = {}) {
     }
   }
   const voice = new VoiceDictation({
-    createSilenceMonitor,
     Recognition, onText: text => texts.push(text), onState: state => states.push(state),
     setTimer: (callback, delay) => { const id = ++timerId; timers.set(id, { callback, delay }); return id; },
     clearTimer: id => timers.delete(id),
@@ -135,12 +134,15 @@ test("a stalled permission request times out and ignores late results", () => {
   assert.equal(r.aborts, 2);
 });
 
-test("one-minute limit remains available without silence detection", () => {
+test("listening has no automatic cutoff and stalled manual stop preserves the draft", () => {
   const h = harness(); h.voice.start(""); const r = h.instances[0];
   assert.deepEqual([...h.timers.values()].map(timer => timer.delay), [20_000]);
   r.onstart();
-  assert.deepEqual([...h.timers.values()].map(timer => timer.delay), [60_000]);
-  r.result(["mi pregunta", false]); h.expire(60_000);
+  assert.equal(h.timers.size, 0);
+  r.result(["mi pregunta", false]);
+  assert.equal(h.voice.active, true);
+  assert.equal(r.stops, 0);
+  h.voice.stop();
   assert.equal(r.stops, 1);
   assert.equal(h.lastState().phase, "stopping");
   h.expire(5_000);
@@ -165,67 +167,4 @@ test("unsupported recognition and clearing an idle status never alter a draft", 
   h.voice.cancel({ silent: true });
   assert.equal(h.texts.length, 0);
   assert.equal(h.lastState().message, "");
-});
-
-function monitoredHarness() {
-  const monitors = [];
-  const h = harness({ createSilenceMonitor: callbacks => {
-    const monitor = { ...callbacks, armed: false, stopped: false,
-      arm() { this.armed = true; }, stop() { this.stopped = true; } };
-    monitors.push(monitor);
-    return monitor;
-  } });
-  return { ...h, monitors };
-}
-
-test("silence stops only an active listening session and retains final recognition results", () => {
-  const h = monitoredHarness(); h.voice.start("Ayuda:");
-  const r = h.instances[0], m = h.monitors[0];
-  assert.equal(m.armed, false);
-  m.onReady(); m.onSilence();
-  assert.equal(r.stops, 0);
-  r.onstart();
-  assert.equal(m.armed, true);
-  assert.match(h.lastState().message, /3 segundos de silencio/);
-  r.result(["mi consulta", false]);
-  m.onSilence(); m.onSilence();
-  assert.equal(r.stops, 1);
-  assert.equal(m.stopped, true);
-  assert.equal(h.lastState().phase, "stopping");
-  m.onReady(); // A late detector callback cannot reopen the session.
-  assert.equal(h.lastState().phase, "stopping");
-  r.result(["mi consulta completa", true]); r.onend();
-  assert.equal(h.lastText(), "Ayuda: mi consulta completa");
-  assert.equal(h.voice.active, false);
-});
-
-test("detector failure retains manual dictation instead of a three-second cutoff", () => {
-  const h = monitoredHarness(); h.voice.start(""); h.instances[0].onstart();
-  h.monitors[0].onReady(); h.monitors[0].onUnavailable();
-  assert.match(h.lastState().message, /pulsa el micrófono/);
-  assert.deepEqual([...h.timers.values()].map(timer => timer.delay), [60_000]);
-  assert.equal(h.instances[0].stops, 0);
-  h.voice.stop();
-  assert.equal(h.instances[0].stops, 1);
-  const throwing = harness({ createSilenceMonitor: () => { throw new Error("unsupported"); } });
-  assert.equal(throwing.voice.start(""), true);
-  throwing.instances[0].onstart();
-  assert.match(throwing.lastState().message, /pulsa el micrófono/);
-});
-
-test("every termination releases monitoring and stale callbacks cannot stop a new dictation", () => {
-  for (const terminate of [
-    h => h.voice.cancel(), h => h.voice.interrupt(), h => h.voice.stop(),
-    h => h.instances[0].onend(), h => h.instances[0].onerror({ error: "network" }),
-    h => h.expire(20_000),
-  ]) {
-    const h = monitoredHarness(); h.voice.start("Draft"); terminate(h);
-    assert.equal(h.monitors[0].stopped, true);
-    assert.equal(h.voice.start("Next"), true);
-    h.instances[1].onstart();
-    h.monitors[0].onSilence(); h.monitors[0].onReady();
-    assert.equal(h.instances[1].stops, 0);
-    assert.equal(h.lastState().phase, "listening");
-    h.voice.cancel();
-  }
 });

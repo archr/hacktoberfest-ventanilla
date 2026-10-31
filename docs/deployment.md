@@ -82,34 +82,28 @@ El proveedor del navegador puede procesar el audio en sus servidores. Ventanilla
 recibe ni guarda audio: el texto permanece en el borrador hasta que la persona pulsa
 **Enviar**.
 
-- Pulsar el micrófono inicia la escucha; pulsarlo de nuevo termina y permite revisar.
+- Pulsar el micrófono inicia la escucha; el botón cambia a «Detener dictado» y
+  pulsarlo termina la escucha y permite revisar el texto.
 - «Cancelar» restaura el borrador anterior. Los resultados tardíos se descartan.
-- La escucha se detiene tras 3 segundos de silencio continuo. Un detector local con
-  `getUserMedia` y Web Audio mide el nivel del micrófono cada 100 ms (umbral RMS 0.01);
-  el sonido reinicia la cuenta. No depende de cuándo llegan las transcripciones y
-  no graba ni envía el audio que analiza. El ruido de fondo puede retrasar la parada.
-- La cuenta empieza cuando el reconocimiento y la captura están activos, sin contar
-  la espera del permiso. Si el detector no está disponible o se interrumpe, se conserva
-  la parada manual anterior. El estado visible indica cuándo se detecta silencio.
-- Se conserva el máximo de un minuto y la parada al ocultar o abandonar la página.
-  Al terminar, cancelar o fallar se liberan también el detector y su micrófono.
+- La app no corta la escucha por silencio ni por duración. Solo usa la captura del
+  reconocedor del navegador, sin un detector de audio paralelo.
+- Al ocultar o abandonar la página, la app interrumpe la escucha y conserva el borrador.
 - Los errores de permisos, silencio o red no bloquean el teclado.
 - No se reinicia automáticamente el micrófono cuando el navegador termina una sesión.
 
 Pruebas del controlador, sin dependencias ni acceso al micrófono:
 
 ```sh
-node --test tests/voice.test.mjs tests/silence.test.mjs
+node --test tests/voice.test.mjs
 ```
 
 La prueba manual final debe hacerse desde HTTPS con un micrófono real: permitir el
-acceso, hablar más de 3 segundos, pausar menos de 3 segundos, seguir hablando y luego
-guardar silencio 3 segundos; corregir y enviar. Comprobar también la cancelación, el
-permiso denegado y ruido de fondo. Las pruebas simuladas no miden la precisión ni la disponibilidad
+acceso, dictar una frase, hacer una pausa y pulsar «Detener dictado»; corregir y enviar.
+Comprobar también la cancelación y el permiso denegado. El servicio del navegador
+puede terminar por sus propios límites o errores. Las pruebas simuladas no miden la precisión ni la disponibilidad
 del servicio de voz del dispositivo.
 
 Referencia: [SpeechRecognition en MDN](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition).
-Detector: [AnalyserNode en MDN](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getFloatTimeDomainData).
 
 ## Dictámenes técnicos
 

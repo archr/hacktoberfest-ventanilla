@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-  <meta name="theme-color" content="#f5f6f7" />
+  <meta name="theme-color" content="#f4f9fa" />
   <title>Ventanilla · Trámites y leyes de México</title>
   <link rel="preload" href="/static/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="/static/styles.css?v=6" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23252a34'/><path d='M9 9l7 15 7-15' fill='none' stroke='white' stroke-width='3' stroke-linejoin='round'/></svg>" />
+  <link rel="stylesheet" href="/static/styles.css?v=8" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235ba9b5'/><path d='M9 9l7 15 7-15' fill='none' stroke='%2314343b' stroke-width='3' stroke-linejoin='round'/></svg>" />
 </head>
 <body>
   <header class="topbar">
@@ -29,19 +29,36 @@
 
   <main id="chat" class="chat" aria-live="polite">
     <section id="welcome" class="welcome">
-      <h2>¿En qué trámite o duda legal te ayudo?</h2>
-      <p class="lead">Pregunta en tus palabras. Respondo con base en fuentes oficiales (fichas de trámites del SAT y leyes federales) y te digo de dónde sale cada dato.</p>
-      <p id="demo-notice" class="muted" hidden></p>
-      <div id="suggestions" class="suggestions"></div>
+      <div class="welcome-hero">
+        <div class="welcome-copy">
+          <p class="eyebrow">Tu punto de partida</p>
+          <h2>Menos dudas.<br>Más claridad.</h2>
+        </div>
+        <p class="lead">Pregunta sobre trámites, derechos o documentos. Te ayudo a orientarte con fuentes oficiales.</p>
+        <img class="welcome-art" src="/static/images/welcome.webp" width="720" height="480" alt="" aria-hidden="true" decoding="async" />
+      </div>
+      <details id="demo-notice" class="demo-notice" hidden>
+        <summary>
+          <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/></svg>
+          <span><strong>Estás en una demo.</strong> Usa datos ficticios.</span>
+          <svg class="disclosure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <p id="demo-details"></p>
+      </details>
+      <div class="suggestions-heading">
+        <h3>¿Por dónde empezamos?</h3>
+        <p>Elige un ejemplo o escribe tu propia pregunta.</p>
+      </div>
+      <div id="suggestions" class="suggestions" role="group" aria-label="Ejemplos de preguntas"></div>
       <div class="capabilities">
-        <div>
-          <h3>También puedo generar</h3>
+        <details>
+          <summary><span>Documentos disponibles</span><span id="document-count" class="resource-count"></span><svg class="disclosure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
           <ul id="doc-types"></ul>
-        </div>
-        <div>
-          <h3>Fuentes consultadas</h3>
+        </details>
+        <details>
+          <summary><span>Fuentes que puedes consultar</span><span id="source-count" class="resource-count"></span><svg class="disclosure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
           <ul id="source-list"><li class="muted">Cargando…</li></ul>
-        </div>
+        </details>
       </div>
     </section>
     <div id="messages" class="messages"></div>
@@ -55,6 +72,6 @@
     <p class="disclaimer">Información orientativa generada por IA; no sustituye asesoría legal. Verifica siempre en el portal oficial de la dependencia.</p>
   </footer>
 
-  <script src="/static/app.js?v=5" type="module"></script>
+  <script src="/static/app.js?v=6" type="module"></script>
 </body>
 </html>

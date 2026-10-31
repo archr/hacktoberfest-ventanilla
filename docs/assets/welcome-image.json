@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: illustration-story. Asset type: small decorative welcome illustration for Ventanilla, a friendly Spanish-language chat about paperwork and everyday legal questions. Create a polished contemporary editorial illustration: one approachable adult person in casual clothing reviewing a simple sheet of paper beside a small open laptop, with one floating speech bubble and a small leafy plant. Friendly and calm, useful everyday help, not a corporate office stock image. Flat cut-paper forms with subtle tactile texture, gentle rounded shapes, confident clean silhouette that remains legible at 180 pixels wide. Compact balanced landscape composition, all elements fully in frame with a modest transparent margin. Primary accent precisely #5BA9B5, pale blue #E1F0F3, dark ink #21343B, white paper and natural warm skin tones, a tiny warm cream highlight. Genuine transparent background. No text, no letters, no words, no logos, no watermark, no flags, no government seals, no national emblems, no political symbols, no courthouse, no robot, no glossy 3D rendering. This is an illustration asset, not a screenshot or complete web interface.",
+  "transparent_background": true,
+  "asset": "app/static/images/welcome.webp",
+  "web_dimensions": [
+    720,
+    480
+  ],
+  "optimization": "Resized and encoded as WebP; alpha preserved."
+}

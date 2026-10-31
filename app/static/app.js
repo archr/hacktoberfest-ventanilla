@@ -457,28 +457,55 @@ async function send(text) {
 }
 
 // ---------- inicio ----------
+function suggestionDetails(question) {
+  if (/carta poder/i.test(question)) return {
+    title: "Documentos", description: "Prepara una carta poder",
+    icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+  };
+  if (/e\.firma/i.test(question)) return {
+    title: "e.firma", description: "Consulta los requisitos",
+    icon: '<circle cx="8" cy="9" r="5"/><path d="m12 13 8 8m-4-4 3-3m-1 5 3-3"/>',
+  };
+  if (/vacaciones/i.test(question)) return {
+    title: "Tus derechos", description: "Conoce tus días de vacaciones",
+    icon: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18m-13 5 2 2 4-4"/>',
+  };
+  if (/\bRFC\b/i.test(question)) return {
+    title: "Trámites", description: "Cómo inscribirte en el RFC",
+    icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M5 16c0-3 6-3 6 0m3-7h4m-4 4h4m-4 4h3"/>',
+  };
+  return { title: "Otra consulta", description: question,
+    icon: '<path d="M21 11a8 8 0 0 1-8 8H7l-4 3V7a4 4 0 0 1 4-4h6a8 8 0 0 1 8 8Z"/><path d="M7 8h9M7 12h6"/>',
+  };
+}
+
 async function loadConfig() {
   try {
     const cfg = await (await fetch("/api/config")).json();
     if (cfg.demo) {
       const notice = $("#demo-notice");
       notice.hidden = false;
-      notice.textContent = `Demo pública: usa datos ficticios. El chat se guarda en este navegador; los documentos se eliminan del servidor después de ${cfg.document_retention_hours} horas. Quien tenga el enlace puede descargarlos mientras estén vigentes.`;
+      $("#demo-details").textContent = `El chat se guarda en este navegador. Los documentos se eliminan del servidor después de ${cfg.document_retention_hours} horas; quien tenga el enlace puede descargarlos mientras estén vigentes.`;
     }
     const sug = $("#suggestions");
     sug.innerHTML = "";
     (cfg.suggestions || []).forEach((q) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.textContent = q;
+      const details = suggestionDetails(q);
+      b.innerHTML = `<span class="suggestion-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${details.icon}</svg></span><span class="suggestion-copy"><strong>${escapeHtml(details.title)}</strong><small>${escapeHtml(details.description)}</small></span>`;
+      b.setAttribute("aria-label", `${details.title}: ${q}`);
+      b.title = q;
       b.addEventListener("click", () => send(q));
       sug.appendChild(b);
     });
     $("#doc-types").innerHTML = (cfg.documents || []).map((d) => `<li title="${escapeHtml(d.description)}">${escapeHtml(d.title)}</li>`).join("");
+    $("#document-count").textContent = (cfg.documents || []).length;
     const src = await (await fetch("/api/sources")).json();
+    $("#source-count").textContent = (src.sources || []).length;
     $("#source-list").innerHTML =
       (src.sources || []).map((s) => `<li><a href="${escapeHtml(safeUrl(s.url) || "#")}" target="_blank" rel="noopener">${escapeHtml(s.title)}</a>${s.version ? ` <span class="muted">(${escapeHtml(s.version)})</span>` : ""}</li>`).join("") ||
-      '<li class="muted">Índice vacío: ejecuta <code>python -m app.rag.ingest</code></li>';
+      '<li class="muted">Todavía no hay fuentes disponibles.</li>';
   } catch {
     $("#source-list").innerHTML = '<li class="muted">No se pudo cargar la configuración.</li>';
   }

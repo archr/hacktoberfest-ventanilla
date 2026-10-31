@@ -19,6 +19,9 @@ services:
       REQUESTS_PER_MINUTE: "30"
       DOCUMENT_RETENTION_HOURS: "24"
       DEMO_MODE: "true"
+      # Dictámenes técnicos de la FGEO: apagados en la demo pública (sin autenticación).
+      # Ver docs/deployment.md antes de activarlos.
+      DICTAMEN_ENABLED: ${DICTAMEN_ENABLED:-false}
     volumes:
       - app-data:/app/data
     expose:

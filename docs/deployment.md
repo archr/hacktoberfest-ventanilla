@@ -49,7 +49,8 @@ se cargan en memoria. Al cambiar el modelo de embeddings, reconstruye todo el í
   visitantes. Devuelve 429 con `Retry-After` cuando está ocupada. No se confía en cabeceras
   de IP enviadas por clientes. Para varias réplicas hace falta un limitador compartido.
 - Cuerpos de hasta 64 KiB; campos de documentos de hasta 4000 caracteres y 50 saltos de
-  línea. Respuestas 413/422 cuando se exceden.
+  línea. Respuestas 413/422 cuando se exceden. La única excepción es la subida de oficios
+  (`/api/dictamen/oficio`, `DICTAMEN_MAX_UPLOAD_MB`), que en la demo está desactivada.
 - Descargas con `Cache-Control: private, no-store`. Caducan a las 24 horas; el borrado se
   ejecuta al arrancar y cada hora, y se impide descargar un documento ya caducado.
 - El navegador conserva el historial localmente. El aviso de demo pide datos ficticios.
@@ -109,6 +110,42 @@ del servicio de voz del dispositivo.
 
 Referencia: [SpeechRecognition en MDN](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition).
 Detector: [AnalyserNode en MDN](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getFloatTimeDomainData).
+
+## Dictámenes técnicos
+
+En `compose.yaml` la función queda **apagada** (`DICTAMEN_ENABLED: ${DICTAMEN_ENABLED:-false}`).
+La plantilla lleva el membrete, el nombre y el cargo del Coordinador General de Sistemas e
+Informática de la Fiscalía General del Estado de Oaxaca. Esta app no tiene cuentas, así que una
+demo pública con la función activa permitiría a cualquier visitante generar oficios con apariencia
+oficial. Con la función apagada, el botón 📎 no aparece, `/api/config` devuelve `"dictamen": null`
+y `/api/dictamen/*` responde 404.
+
+Actívala solo en una instalación **interna**: red privada, VPN o Tailscale, o detrás de un proxy
+con autenticación (por ejemplo, OAuth2 Proxy o el *basic auth* de Traefik en Coolify). Hazlo
+además en un despliegue distinto de la demo pública.
+
+1. La imagen debe incluir `app/dictamen/` y `config/dictamen/` (plantilla convertida y
+   `tecnicos.json`). Hoy `.dockerignore` los excluye: agrega `!config/dictamen/` y
+   `!config/dictamen/**` y quita la línea `app/dictamen/`. Si la variable está en `true` y el
+   módulo no viene en la imagen, la app arranca igual y lo registra en el log, pero la función
+   queda apagada.
+2. En las variables del servicio `app` (en Coolify: *Environment Variables*) define
+   `DICTAMEN_ENABLED=true`. Opcionalmente ajusta `DICTAMEN_MAX_UPLOAD_MB` (15),
+   `DICTAMEN_MAX_PAGES` (4), `DICTAMEN_EXTRACT_TIMEOUT_S` (240) y `DICTAMEN_EXTRACT_MODEL`
+   (vacío = `LLM_MODEL`; debe aceptar imágenes).
+3. `DEMO_MODE` y los límites (`MAX_CONCURRENT_REQUESTS`, `REQUESTS_PER_MINUTE`…) están fijos en
+   `compose.yaml`. En una instalación interna cámbialos con un override (ver abajo), por ejemplo
+   `DEMO_MODE: "false"` para quitar el aviso de datos ficticios.
+4. El proxy debe aceptar cuerpos del tamaño del oficio. Traefik no limita por defecto. Con
+   Cloudflare, el plan gratuito admite hasta 100 MB.
+5. Verifica: `GET /api/health` → `"dictamen": {"enabled": true, "template": true}`. Luego sube
+   un oficio de prueba con datos ficticios, genera el dictamen y ábrelo en Word.
+
+Los oficios no se conservan: se procesan durante la petición y solo los lee el Qwen de
+`LLM_BASE_URL`. Los dictámenes generados se guardan en el volumen `app-data` y caducan con
+`DOCUMENT_RETENTION_HOURS`. Las lecturas van en serie y ocupan una de las
+`MAX_CONCURRENT_REQUESTS` plazas mientras Qwen responde (5-60 s). Si muchas personas lo usan a la
+vez, sube ese límite y `REQUESTS_PER_MINUTE` en el override.
 
 ## Docker Compose sin Coolify
 

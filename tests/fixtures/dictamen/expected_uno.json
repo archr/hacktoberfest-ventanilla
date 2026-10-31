@@ -1,0 +1,552 @@
+{
+ "_origen": "generate.js original de dictamen-bot con docxtemplater 3.71.1 (plantilla config/dictamen/original/dictamen_docxtemplater.docx, fecha fija 2026-10-05, TZ=America/Mexico_City)",
+ "input": {
+  "today": "2026-10-05",
+  "data": {
+   "oficio_recibido": "FGEO/DA/0457/2026",
+   "fecha_oficio_recibido": "20 de octubre del 2026",
+   "cargo_remitente": "Directora de Administración",
+   "nombre_remitente": "Mtra. Arima Ojeda Santiago",
+   "equipos": [
+    {
+     "tipo_equipo": "CPU",
+     "marca": "HP",
+     "modelo": "ProDesk 400 G6",
+     "numero_serie": "MXL1234ABC",
+     "numero_inventario": "FGEO-00123",
+     "motivo": null
+    }
+   ]
+  },
+  "own": {
+   "numero_oficio": "FGEO/CGSI/1429/2026",
+   "dictamen_inicial": "191",
+   "iniciales": "igf/dsa",
+   "motivo": "equipo con falla de encendido"
+  }
+ },
+ "expected": {
+  "blocks": [
+   {
+    "p": "",
+    "fmt": "443fecafc00c"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "SECCIÓN:",
+        "fmt": "7954536f29be"
+       }
+      ],
+      [
+       {
+        "p": "COORDINACIÓN GENERAL DE SISTEMAS E INFORMÁTICA.",
+        "fmt": "37bf6bc465c8"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NÚMERO:",
+        "fmt": "e8bb0629aed3"
+       }
+      ],
+      [
+       {
+        "p": "FGEO/CGSI/1429/2026",
+        "fmt": "2e561e57cea7"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "ASUNTO:",
+        "fmt": "87d0f908f844"
+       }
+      ],
+      [
+       {
+        "p": "EMISIÓN DE DICTAMEN",
+        "fmt": "319a5b0412f5"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "8c1f6acdea49"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "39a9b2e8e2c6"
+   },
+   {
+    "p": "",
+    "fmt": "39a9b2e8e2c6"
+   },
+   {
+    "p": "Reyes Mantecón, San Bartolo Coyotepec, Oax., a 05 DE OCTUBRE DEL 2026",
+    "fmt": "93b503d5959f"
+   },
+   {
+    "p": "",
+    "fmt": "1350f87b9737"
+   },
+   {
+    "p": "MTRA. ARIMA OJEDA SANTIAGO",
+    "fmt": "bef11ad4d968"
+   },
+   {
+    "p": "DIRECTORA DE ADMINISTRACIÓN",
+    "fmt": "de9634a24c1e"
+   },
+   {
+    "p": "P R E S E N T E",
+    "fmt": "71a96291c18b"
+   },
+   {
+    "p": "",
+    "fmt": "38f4311664fb"
+   },
+   {
+    "p": "El que suscribe, L.I. Marcelo Daniel Totolhua García, Coordinador General de Sistemas e Informática de la Fiscalía General del Estado de Oaxaca, por medio del presente, en atención a su oficio FGEO/DA/0457/2026 de fecha 20 DE OCTUBRE DEL 2026, remitida al Departamento de Informática y Soporte Técnico, me permito informarle que se ha realizado una revisión minuciosa del siguiente equipo:",
+    "fmt": "62f05b99d111"
+   },
+   {
+    "p": "",
+    "fmt": "4381d07b0bd6"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "NO. DICTAMEN",
+        "fmt": "21aa57846835"
+       }
+      ],
+      [
+       {
+        "p": "NO. INVENTARIO",
+        "fmt": "fa167f292ff3"
+       }
+      ],
+      [
+       {
+        "p": "EQUIPO",
+        "fmt": "711ba7d0d07e"
+       }
+      ],
+      [
+       {
+        "p": "MARCA",
+        "fmt": "3451943e9d1b"
+       }
+      ],
+      [
+       {
+        "p": "MODELO",
+        "fmt": "0029910d6f06"
+       }
+      ],
+      [
+       {
+        "p": "SERIE",
+        "fmt": "70d47ad1b8ec"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "191",
+        "fmt": "f7697282a8bc"
+       }
+      ],
+      [
+       {
+        "p": "FGEO-00123",
+        "fmt": "f56749035477"
+       }
+      ],
+      [
+       {
+        "p": "CPU",
+        "fmt": "cb417226fb4d"
+       }
+      ],
+      [
+       {
+        "p": "HP",
+        "fmt": "41397ce0721c"
+       }
+      ],
+      [
+       {
+        "p": "PRODESK 400 G6",
+        "fmt": "a5b2df0832cf"
+       }
+      ],
+      [
+       {
+        "p": "MXL1234ABC",
+        "fmt": "10270235a419"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "4381d07b0bd6"
+   },
+   {
+    "p": "Por lo anterior, me permito emitir el siguiente DICTAMEN TÉCNICO, el cual se anexa a continuación, para los efectos legales y administrativos correspondientes.",
+    "fmt": "fd5648cb890c"
+   },
+   {
+    "p": "",
+    "fmt": "4381d07b0bd6"
+   },
+   {
+    "p": "Sin más por el momento le envió un cordial saludo.",
+    "fmt": "290ad9492404"
+   },
+   {
+    "p": "",
+    "fmt": "018d5ec68ef6"
+   },
+   {
+    "p": "",
+    "fmt": "17e016c2e954"
+   },
+   {
+    "p": "",
+    "fmt": "018d5ec68ef6"
+   },
+   {
+    "p": "A T E N T A M E N T E",
+    "fmt": "b8c195c4b1ed"
+   },
+   {
+    "p": "SUFRAGIO EFECTIVO, NO REELECCIÓN",
+    "fmt": "ee290a7b01ea"
+   },
+   {
+    "p": "“EL RESPETO AL DERECHO AJENO ES LA PAZ”",
+    "fmt": "391f3beced47"
+   },
+   {
+    "p": "COORDINADOR GENERAL DE SISTEMAS E INFORMÁTICA.",
+    "fmt": "10b5271a9275"
+   },
+   {
+    "p": "",
+    "fmt": "f1fee206793f"
+   },
+   {
+    "p": "",
+    "fmt": "69953c120dab"
+   },
+   {
+    "p": "L.I. MARCELO DANIEL TOTOLHUA GARCÍA",
+    "fmt": "efb80e40b11c"
+   },
+   {
+    "p": "",
+    "fmt": "d3425273ba43"
+   },
+   {
+    "p": "C.c.p. Minutario",
+    "fmt": "3addf18ae434"
+   },
+   {
+    "p": "",
+    "fmt": "51ddfbb48dfb"
+   },
+   {
+    "p": "MDTG/igf/dsa",
+    "fmt": "f7b4e102ea42"
+   },
+   {
+    "p": "DICTAMEN TÉCNICO",
+    "fmt": "56a05ff7da1b"
+   },
+   {
+    "p": "",
+    "fmt": "cb4af888a706"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "\tNo. DICTAMEN",
+        "fmt": "0c774d664769"
+       }
+      ],
+      [
+       {
+        "p": "191",
+        "fmt": "bba2bd79c380"
+       }
+      ],
+      [
+       {
+        "p": "FECHA",
+        "fmt": "4ea8e5613b24"
+       }
+      ],
+      [
+       {
+        "p": "05 DE OCTUBRE DEL 2026",
+        "fmt": "2fae25a7e2a4"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "cb4af888a706"
+   },
+   {
+    "p": "En atención a la solicitud de fecha 20 DE OCTUBRE DEL 2026, me permito emitir el siguiente dictamen del equipo que a continuación se describe:",
+    "fmt": "3ee4ab5e682e"
+   },
+   {
+    "p": "",
+    "fmt": "6c7baef559ee"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "CARACTERÍSTICAS DEL EQUIPO A DICTAMINAR",
+        "fmt": "8a4d7893d62a"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "TIPO DE EQUIPO",
+        "fmt": "099bf56ba51b"
+       }
+      ],
+      [
+       {
+        "p": "CPU",
+        "fmt": "dcaf2e6e7728"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NUMERO DE INVENTARIO",
+        "fmt": "dd16e1618144"
+       }
+      ],
+      [
+       {
+        "p": "FGEO-00123",
+        "fmt": "737ef88b11f9"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "MARCA",
+        "fmt": "957edefaf910"
+       }
+      ],
+      [
+       {
+        "p": "HP",
+        "fmt": "50ca215fec58"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "MODELO",
+        "fmt": "25361c2f0292"
+       }
+      ],
+      [
+       {
+        "p": "PRODESK 400 G6",
+        "fmt": "74d119029bc4"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NÚMERO DE SERIE",
+        "fmt": "57c6772d5b2b"
+       }
+      ],
+      [
+       {
+        "p": "MXL1234ABC",
+        "fmt": "3a578f7b81a9"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "OTROS COMPONENTES",
+        "fmt": "eb7b95741973"
+       }
+      ],
+      [
+       {
+        "p": "---",
+        "fmt": "1cdbc8d27154"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "e1fb5152fdb3"
+   },
+   {
+    "p": "Después de haber realizado una revisión minuciosa y pruebas al equipo arriba mencionado, se emite el siguiente dictamen: EQUIPO CON FALLA DE ENCENDIDO.",
+    "fmt": "0a03e78f5b14"
+   },
+   {
+    "p": "",
+    "fmt": "52c7242b9de6"
+   },
+   {
+    "p": "En caso de considerarlo, iniciar los trámites de baja ante el área de Inventarios.",
+    "fmt": "1b92ca63c3f8"
+   },
+   {
+    "p": "",
+    "fmt": "c9a72e72322c"
+   },
+   {
+    "p": "",
+    "fmt": "3a6b15e7e89a"
+   },
+   {
+    "p": "A T E N T A M E N T E",
+    "fmt": "ff4b2ab04f5e"
+   },
+   {
+    "p": "SUFRAGIO EFECTIVO, NO REELECCIÓN",
+    "fmt": "bf687da5963b"
+   },
+   {
+    "p": "“EL RESPETO AL DERECHO AJENO ES LA PAZ”",
+    "fmt": "1874197b4f7b"
+   },
+   {
+    "p": "COORDINADOR GENERAL DE SISTEMAS E INFORMÁTICA.",
+    "fmt": "9b15e3e9ed50"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "\tL.I. MARCELO DANIEL TOTOLHUA GARCÍA",
+    "fmt": "878ef1343b72"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "bcb03d3ba394"
+   },
+   {
+    "p": "C.c.p. Minutario",
+    "fmt": "4cb22d80453a"
+   },
+   {
+    "p": "MDTG/igf/dsa",
+    "fmt": "b070e649e690"
+   }
+  ],
+  "tables": [
+   [
+    2,
+    2,
+    2
+   ],
+   [
+    6,
+    6
+   ],
+   [
+    4
+   ],
+   [
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ]
+  ],
+  "page_breaks": 1,
+  "sections": 1,
+  "header_default": [
+   "",
+   "",
+   "\"2026, Año del Bicentenario del Natalicio de Margarita Maza Parada, Ejemplo de Dignidad, Lealtad y Servicio a la Nación\""
+  ],
+  "footer_default": [
+   "",
+   "Centro Administrativo del Poder Ejecutivo y Judicial | “Gral. Porfirio Díaz, Soldado de la Patria” | Edificio Jesús “Chú” Rasgado | Primer Nivel | Reyes Mantecón, san Bartolo Coyotepec | Oaxaca | C.P. 71250 | (951) 5016900 Ext. 20480",
+   "",
+   ""
+  ]
+ }
+}

@@ -44,6 +44,9 @@ de enviarlos al servicio que genera el documento.
 - Si conoces una limitación importante (por ejemplo, que el trámite no admite representación con \
 carta poder), menciónala en una frase, pero respeta la decisión de la persona.
 - Si la herramienta responde con error, explica qué falta o qué falló y cómo resolverlo.
+- Dictámenes técnicos de equipos de cómputo (uso interno): no los generas con herramientas; pide \
+a la persona que adjunte el oficio con el botón 📎 junto al cuadro de texto (PDF, Word o foto) y \
+revise la tarjeta que aparece. Si no ve el botón, esta instalación no tiene habilitada esa función.
 """
 
 CONTEXT_TEMPLATE = """\

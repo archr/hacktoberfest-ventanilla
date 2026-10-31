@@ -21,6 +21,7 @@ function syncVoiceControls() {
   $("#dictate").setAttribute("aria-label", label);
   $("#dictate").title = label;
   $("#voice-cancel").hidden = !active;
+  $("#attach").disabled = active || state.busy; // no adjuntar oficios mientras se dicta o responde
   $$("#suggestions button").forEach((button) => { button.disabled = active || state.busy; });
 }
 
@@ -31,6 +32,14 @@ const state = {
   busy: false,
   controller: null,
 };
+// Cambia con «Nueva conversación»: una petición que termina después ya no escribe en la nueva.
+let epoch = 0;
+let dictamenCfg = null; // GET /api/config -> dictamen (null si está deshabilitado)
+// Al recargar o cerrar, el navegador aborta los fetch pendientes: no hay que guardar ese fallo
+// como definitivo (la tarjeta queda «enviando» y al volver se muestra como interrumpida).
+let unloading = false;
+window.addEventListener("beforeunload", () => { unloading = true; });
+window.addEventListener("pageshow", () => { unloading = false; });
 
 // ---------- utilidades ----------
 // crypto.randomUUID() solo existe en contextos seguros (HTTPS/localhost); por HTTP en la VPN
@@ -149,6 +158,159 @@ function renderMarkdown(md, citeIds = new Set()) {
 
 const fmtSize = (n) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
+// ---------- dictamen técnico: lógica pura ----------
+// Sin DOM ni estado global: tests/test_dictamen_api.py la ejecuta con node entre los marcadores.
+// DICTAMEN-PURE-START
+const DICT_DIGITS = /^[0-9]+$/;
+const dictBlank = (v) => v == null || !String(v).trim();
+const dictClean = (v) => (dictBlank(v) ? null : String(v).trim());
+const dictText = (v) => (v == null ? "" : String(v));
+const dictSentence = (s) => { s = String(s || "").trim(); return s && !/[.!?…]$/.test(s) ? `${s}.` : s; };
+
+// Mismas reglas y mismo orden que app/dictamen/schema.py:faltantes().
+function dictFaltantes(fields, data, own) {
+  const out = fields.general.filter((f) => f.required !== false && dictBlank(data[f.name])).map((f) => f.name);
+  const equipos = (Array.isArray(data.equipos) ? data.equipos : []).filter((e) => e && typeof e === "object");
+  if (!equipos.length) out.push("equipos");
+  equipos.forEach((eq, i) => {
+    for (const f of fields.equipo) if (f.required && dictBlank(eq[f.name])) out.push(`equipo_${i + 1}_${f.name}`);
+  });
+  for (const f of fields.own) {
+    const v = own[f.name];
+    let missing;
+    if (f.name === "dictamen_inicial") missing = !DICT_DIGITS.test(String(v ?? "").trim());
+    else if (f.name === "motivo") missing = dictBlank(v) && equipos.some((eq) => dictBlank(eq.motivo));
+    else missing = f.required !== false && dictBlank(v);
+    if (missing) out.push(f.name);
+  }
+  return out;
+}
+
+const dictMissingKey = (scope, name, row) => (scope === "eq" ? `equipo_${row + 1}_${name}` : name);
+const dictEmptyEquipo = (fields) => Object.fromEntries(fields.equipo.map((f) => [f.name, ""]));
+
+// Estado de la tarjeta a partir de la respuesta de POST /api/dictamen/oficio (200 o 502).
+function dictNewCard(body, cfg, id) {
+  const fields = cfg.fields;
+  const max = cfg.max_equipos || 100;
+  const src = body.data && typeof body.data === "object" ? body.data : {};
+  const own = body.own && typeof body.own === "object" ? body.own : {};
+  const equipos = (Array.isArray(src.equipos) ? src.equipos : []).filter((e) => e && typeof e === "object").slice(0, max);
+  return {
+    id,
+    status: "pending", // pending | sending | interrupted | done | cancelled
+    filename: dictText(body.filename),
+    manual: !!body.manual,
+    mode: body.mode || null,
+    pages: body.pages ?? null,
+    total_pages: body.total_pages ?? body.pages ?? null,
+    elapsed_s: body.elapsed_s ?? null,
+    detected: equipos.length,
+    fields,
+    tecnicos: Array.isArray(cfg.tecnicos) ? cfg.tecnicos : [],
+    maxEquipos: max,
+    data: {
+      ...Object.fromEntries(fields.general.map((f) => [f.name, dictText(src[f.name])])),
+      equipos: equipos.map((eq) => Object.fromEntries(fields.equipo.map((f) => [f.name, dictText(eq[f.name])]))),
+    },
+    own: Object.fromEntries(fields.own.map((f) => [f.name, dictText(own[f.name])])),
+    error: "",
+    invalid: [], // claves marcadas por el servidor (p. ej. iniciales rechazadas) hasta editarlas
+    result: null,
+  };
+}
+
+// Solo campos conocidos (lista blanca): nada de sobrescribir «equipos» con texto.
+function dictApplyEdit(c, scope, name, row, value) {
+  const known = (list) => list.some((f) => f.name === name);
+  if (scope === "data" && known(c.fields.general)) c.data[name] = value;
+  else if (scope === "own" && known(c.fields.own)) c.own[name] = value;
+  else if (scope === "eq" && c.data.equipos[row] && known(c.fields.equipo)) c.data.equipos[row][name] = value;
+  else return false;
+  const key = dictMissingKey(scope, name, row);
+  c.invalid = (c.invalid || []).filter((k) => k !== key);
+  c.error = "";
+  return true;
+}
+
+function dictAddEquipo(c) {
+  if (c.data.equipos.length >= c.maxEquipos) return false;
+  c.data.equipos.push(dictEmptyEquipo(c.fields));
+  return true;
+}
+
+function dictRemoveEquipo(c, i) {
+  if (!(i >= 0 && i < c.data.equipos.length)) return false;
+  c.data.equipos.splice(i, 1);
+  c.invalid = []; // los índices de las filas cambian
+  return true;
+}
+
+// Cuerpo de POST /api/dictamen/generar: claves exactas, texto recortado y "" -> null.
+function dictPayload(c, conversationId) {
+  const pick = (src, list) => Object.fromEntries(list.map((f) => [f.name, dictClean(src[f.name])]));
+  return {
+    data: { ...pick(c.data, c.fields.general), equipos: c.data.equipos.map((eq) => pick(eq, c.fields.equipo)) },
+    own: pick(c.own, c.fields.own),
+    conversation_id: conversationId || null,
+  };
+}
+
+// Como generate.py: int(dictamen_inicial) + i, conservando los ceros a la izquierda escritos.
+function dictNumero(inicial, i) {
+  const n = String(Number(inicial) + i);
+  return inicial.length > 1 && inicial.startsWith("0") ? n.padStart(inicial.length, "0") : n;
+}
+
+function dictRango(inicial, n) {
+  const s = String(inicial ?? "").trim();
+  if (!DICT_DIGITS.test(s) || n < 1 || !Number.isSafeInteger(Number(s) + n)) return "";
+  return n === 1 ? `Se numerará como dictamen ${dictNumero(s, 0)}.` : `Se numerarán del ${dictNumero(s, 0)} al ${dictNumero(s, n - 1)}.`;
+}
+
+function dictSummary(n, filename) {
+  if (!n) return `No detecté equipos en el oficio «${filename}». Agrégalos en la tabla, revisa los demás datos y completa los marcados.`;
+  return `Detecté ${n} equipo(s) en el oficio «${filename}». Revisa todos los datos y completa los marcados.`;
+}
+
+function dictResultText(r) {
+  if (!r || !Array.isArray(r.numeros)) return "Dictamen generado.";
+  const [a, b] = r.numeros;
+  const nums = a === b ? `dictamen ${a}` : `dictámenes ${a} a ${b}`;
+  return `Dictamen generado: ${nums}, iniciales MDTG/${r.iniciales}. Descárgalo abajo.`;
+}
+
+// Nota para el historial del LLM (mantiene la alternancia user/assistant).
+function dictHistoryNote(c) {
+  const base = c.manual
+    ? `(Sistema) No se pudo leer el oficio «${c.filename}»; se mostró una tarjeta vacía para capturar a mano los datos del dictamen técnico.`
+    : `(Sistema) Detecté ${c.detected} equipo(s) en el oficio «${c.filename}»; se mostró una tarjeta para revisar los datos y generar el dictamen técnico.`;
+  if (c.status === "done" && c.result) {
+    const [a, b] = c.result.numeros || [];
+    return `${base} La persona revisó los datos y se generó el dictamen «${c.result.filename}» (${c.result.equipos} equipo(s), números ${a} a ${b}, iniciales MDTG/${c.result.iniciales}); ya puede descargarlo desde el chat.`;
+  }
+  if (c.status === "cancelled") return `${base} La persona descartó la tarjeta sin generar el dictamen.`;
+  return base;
+}
+
+// Al recargar la página: nada queda "en curso" ni se reintenta solo.
+function dictOnLoad(entry) {
+  if (entry.upload === "reading") {
+    entry.upload = "interrupted";
+    entry.busyText = "";
+    entry.text = `La lectura del oficio «${entry.filename || ""}» se interrumpió. Vuelve a adjuntarlo con 📎.`;
+  }
+  if (entry.dictamen && entry.dictamen.status === "sending") Object.assign(entry.dictamen, { status: "interrupted", error: "" });
+}
+
+function dictErrorText(body, status) {
+  const b = body && typeof body === "object" ? body : {};
+  const msg = (typeof b.message === "string" && b.message) || (typeof b.detail === "string" && b.detail) || `Error ${status}`;
+  const extra = (Array.isArray(b.errors) ? b.errors : []).filter((e) => typeof e === "string" && e && e !== msg);
+  return [msg, ...extra].join(" · ");
+}
+// DICTAMEN-PURE-END
+
 // ---------- persistencia ----------
 function save() {
   try {
@@ -201,7 +363,10 @@ function updateEntry(entry) {
     const label = entry.pending && !entry.text ? (entry.search ? `Buscando en fuentes oficiales: “${escapeHtml(entry.search)}”…` : "Pensando…") : "Ver razonamiento";
     main += `<details class="thinking"><summary>${label}</summary>${entry.reasoning ? `<div class="reasoning">${escapeHtml(entry.reasoning)}</div>` : ""}</details>`;
   }
-  main += `<div class="content${entry.pending ? " typing" : ""}">${renderMarkdown(entry.text, available)}</div>`;
+  // entry.plain: texto con nombres de archivo o datos del oficio; se escapa sin interpretar markdown
+  const body = entry.plain ? (entry.text ? `<p>${escapeHtml(entry.text).replace(/\n/g, "<br>")}</p>` : "") : renderMarkdown(entry.text, available);
+  main += `<div class="content${entry.pending ? " typing" : ""}">${body}</div>`;
+  if (entry.busyText) main += `<div class="tool-status"><div class="spinner"></div>${escapeHtml(entry.busyText)}</div>`;
   for (const t of entry.tools || []) {
     if (t.status === "running") main += `<div class="tool-status"><div class="spinner"></div>Generando «${escapeHtml(t.title)}»…</div>`;
     if (t.status === "error") main += `<div class="tool-status err">No se pudo generar «${escapeHtml(t.title)}»: ${escapeHtml(t.message)}</div>`;
@@ -215,6 +380,10 @@ function updateEntry(entry) {
   for (const c of entry.confirms || []) {
     if (!c._node) c._node = buildConfirmCard(entry, c);
     if (c._node.parentNode !== confirmsEl) confirmsEl.appendChild(c._node);
+  }
+  if (entry.dictamen) {
+    if (!entry.dictamen._node) entry.dictamen._node = buildDictamenCard(entry, entry.dictamen);
+    if (entry.dictamen._node.parentNode !== confirmsEl) confirmsEl.appendChild(entry.dictamen._node);
   }
 
   let tail = "";
@@ -321,6 +490,7 @@ function buildConfirmCard(entry, c) {
     btn.disabled = true;
     btn.textContent = "Generando…";
     msg.textContent = "";
+    const myEpoch = epoch;
     try {
       const res = await fetch("/api/documents", {
         method: "POST",
@@ -328,6 +498,7 @@ function buildConfirmCard(entry, c) {
         body: JSON.stringify({ type: c.type, data: c.data, conversation_id: state.conversationId }),
       });
       const body = await res.json().catch(() => ({}));
+      if (myEpoch !== epoch) return; // la persona empezó otra conversación
       if (!res.ok) {
         c.status = "pending";
         setStatus("pending");
@@ -354,6 +525,332 @@ function buildConfirmCard(entry, c) {
   if (c.status && c.status !== "pending") setStatus(c.status, c.status === "done" ? "Datos confirmados y enviados." : "Generación cancelada.");
   else c.status = "pending";
   return form;
+}
+
+// ---------- tarjeta de dictamen técnico ----------
+const DICT_STATUS = {
+  sending: "Generando dictamen…",
+  interrupted:
+    "La página se recargó mientras se generaba el dictamen y no se sabe si terminó. Si no lo descargaste, desbloquea la tarjeta para intentarlo de nuevo.",
+  cancelled: "Tarjeta descartada.",
+};
+let dictSaveTimer = null;
+const dictSaveSoon = () => {
+  clearTimeout(dictSaveTimer);
+  dictSaveTimer = setTimeout(save, 250);
+};
+
+function dictUpdateNote(c) {
+  const note = state.history.find((m) => m.ref === c.id && m.role === "assistant");
+  if (note) note.content = dictHistoryNote(c);
+}
+
+function buildDictamenCard(entry, c) {
+  const form = document.createElement("form");
+  form.className = "confirm-card dictamen-card";
+  form.noValidate = true;
+  const pid = `dc-${entry.id}`;
+  const f = c.fields;
+  const tecnicos = c.tecnicos.filter((t) => t && t.iniciales);
+  const listId = `${pid}-tecnicos`;
+
+  const control = (scope, field, opts = {}) => {
+    const id = `${pid}-${scope}-${field.name}`;
+    const value = scope === "data" ? c.data[field.name] : c.own[field.name];
+    const attrs = [
+      `id="${escapeHtml(id)}"`,
+      `data-scope="${scope}"`,
+      `data-name="${escapeHtml(field.name)}"`,
+      `value="${escapeHtml(value)}"`,
+      field.example ? `placeholder="Ej. ${escapeHtml(field.example)}"` : "",
+      opts.numeric ? 'inputmode="numeric" pattern="[0-9]*"' : "",
+      opts.list ? `list="${escapeHtml(listId)}"` : "",
+      'autocomplete="off"',
+      'maxlength="500"',
+    ].join(" ");
+    const help = [field.help, opts.extraHelp].filter(Boolean).map(escapeHtml).join(" ");
+    return `<label class="field${field.required ? " req" : ""}${opts.wide ? " wide" : ""}" for="${escapeHtml(id)}">
+      <span>${escapeHtml(field.label)}</span><input ${attrs} />
+      ${help ? `<small class="hint">${help}</small>` : ""}${opts.after || ""}</label>`;
+  };
+
+  const tecHelp = tecnicos.length
+    ? `Técnicos: ${tecnicos.map((t) => (t.nombre ? `${t.nombre} (${t.iniciales})` : t.iniciales)).join(", ")}. No escribas «MDTG»: ya va en la plantilla.`
+    : "No escribas «MDTG»: ya va en la plantilla.";
+  const ownHtml = f.own
+    .map((field) => {
+      if (field.name === "dictamen_inicial") return control("own", field, { numeric: true, after: '<small class="hint rango"></small>' });
+      if (field.name === "iniciales") return control("own", field, { list: true, extraHelp: tecHelp });
+      return control("own", field);
+    })
+    .join("");
+  const origin = c.manual
+    ? "No se pudo leer el oficio: captura los datos a mano."
+    : `Datos extraídos de «${c.filename}»${c.mode ? ` (${c.mode === "imagen" ? "como imagen" : "como texto"}${c.pages ? `, ${c.pages} pág.` : ""}${c.elapsed_s != null ? `, ${Number(c.elapsed_s).toFixed(1)} s` : ""})` : ""}. Compáralos con el oficio: el modelo puede confundir letras y números en series e inventarios.` +
+      (c.total_pages > c.pages ? ` Solo se leyeron las primeras ${c.pages} de ${c.total_pages} páginas: agrega a mano los equipos que falten.` : "");
+
+  form.innerHTML = `
+    <div class="confirm-head"><strong>Dictamen técnico: revisa los datos</strong><span>${escapeHtml(origin)}</span></div>
+    <fieldset><legend>Oficio recibido</legend><div class="fields">${f.general.map((field) => control("data", field)).join("")}</div></fieldset>
+    <fieldset><legend>Datos del dictamen</legend><div class="fields">${ownHtml}</div>
+      <datalist id="${escapeHtml(listId)}">${tecnicos
+        .map((t) => `<option value="${escapeHtml(t.iniciales)}">${escapeHtml(t.nombre || t.iniciales)}</option>`)
+        .join("")}</datalist></fieldset>
+    <fieldset><legend>Equipos <span class="count"></span></legend>
+      <div class="equipos-wrap"><table class="equipos"><thead><tr><th class="n">#</th>${f.equipo
+        .map((field) => `<th${field.required ? ' class="req"' : ""} title="${escapeHtml(field.help || "")}">${escapeHtml(field.label)}</th>`)
+        .join("")}<th><span class="sr-only">Quitar</span></th></tr></thead><tbody></tbody></table>
+        <div class="equipos-empty">No hay equipos. Agrega al menos uno.</div></div>
+      <button type="button" class="ghost add">+ Agregar equipo</button></fieldset>
+    <div class="confirm-msg" role="status" aria-live="polite"></div>
+    <div class="confirm-actions">
+      <button type="button" class="ghost unlock">Desbloquear para reintentar</button>
+      <button type="button" class="ghost fix">Corregir datos y volver a generar</button>
+      <button type="button" class="ghost cancel">Descartar</button>
+      <button type="submit" class="primary submit">Generar dictamen</button>
+    </div>`;
+
+  const $c = (sel) => form.querySelector(sel);
+  const tbody = $c("tbody");
+  const msg = $c(".confirm-msg");
+  const btn = { add: $c(".add"), unlock: $c(".unlock"), fix: $c(".fix"), cancel: $c(".cancel"), submit: $c(".submit") };
+
+  const renderRows = () => {
+    tbody.innerHTML = c.data.equipos
+      .map(
+        (eq, i) => `<tr><td class="n">${i + 1}</td>${f.equipo
+          .map((field) => {
+            const ph = field.name === "numero_inventario" ? "S/N" : field.name === "motivo" ? "El general" : "";
+            return `<td><input data-scope="eq" data-row="${i}" data-name="${escapeHtml(field.name)}" value="${escapeHtml(eq[field.name])}" aria-label="Equipo ${i + 1}: ${escapeHtml(field.label)}" placeholder="${ph}" autocomplete="off" maxlength="500" /></td>`;
+          })
+          .join("")}<td><button type="button" class="ghost remove" data-remove="${i}" aria-label="Quitar equipo ${i + 1}" title="Quitar equipo">✕</button></td></tr>`,
+      )
+      .join("");
+  };
+
+  const sync = () => {
+    const editable = c.status === "pending";
+    const missing = new Set(editable ? [...dictFaltantes(f, c.data, c.own), ...(c.invalid || [])] : []);
+    form.classList.toggle("is-locked", !editable);
+    form.classList.toggle("is-done", c.status === "done");
+    form.classList.toggle("is-cancelled", c.status === "cancelled");
+    form.querySelectorAll("input[data-scope]").forEach((el) => {
+      const miss = missing.has(dictMissingKey(el.dataset.scope, el.dataset.name, Number(el.dataset.row)));
+      el.classList.toggle("missing", miss);
+      if (miss) el.setAttribute("aria-invalid", "true");
+      else el.removeAttribute("aria-invalid");
+      el.disabled = !editable;
+    });
+    form.querySelectorAll("button").forEach((b) => (b.disabled = !editable));
+    btn.add.disabled = !editable || c.data.equipos.length >= c.maxEquipos;
+    btn.unlock.hidden = c.status !== "interrupted";
+    btn.fix.hidden = c.status !== "done";
+    btn.unlock.disabled = btn.fix.disabled = false;
+    btn.cancel.hidden = btn.submit.hidden = !["pending", "sending"].includes(c.status);
+    btn.submit.textContent = c.status === "sending" ? "Generando…" : "Generar dictamen";
+    $c(".count").textContent = `(${c.data.equipos.length})`;
+    const empty = $c(".equipos-empty");
+    empty.hidden = c.data.equipos.length > 0;
+    empty.classList.toggle("missing", missing.has("equipos"));
+    const rango = $c(".rango");
+    if (rango) rango.textContent = dictRango(c.own.dictamen_inicial, c.data.equipos.length);
+    let text = "";
+    let cls = "";
+    if (c.status === "done") text = dictResultText(c.result);
+    else if (c.status === "interrupted") [text, cls] = [c.error || DICT_STATUS.interrupted, "warn"];
+    else if (DICT_STATUS[c.status]) text = DICT_STATUS[c.status];
+    else if (c.error) [text, cls] = [c.error, "err"];
+    else if (missing.size) [text, cls] = [`Faltan ${missing.size} dato(s): están marcados en rojo.`, "pending"];
+    msg.className = `confirm-msg ${cls}`;
+    msg.textContent = text;
+  };
+
+  const focusFirstMissing = () => {
+    const el = form.querySelector("input.missing") || (c.data.equipos.length ? null : btn.add);
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
+  form.addEventListener("input", (ev) => {
+    const el = ev.target;
+    if (c.status !== "pending" || !el.dataset || !el.dataset.scope) return;
+    if (dictApplyEdit(c, el.dataset.scope, el.dataset.name, Number(el.dataset.row), el.value)) {
+      sync();
+      dictSaveSoon();
+    }
+  });
+  // Enter en un campo no envía la tarjeta (solo el botón «Generar dictamen»)
+  form.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" && ev.target.tagName === "INPUT") ev.preventDefault();
+  });
+  form.addEventListener("click", (ev) => {
+    const b = ev.target.closest("button");
+    if (!b || b.disabled || b.type === "submit") return;
+    if (b.dataset.remove != null) {
+      if (c.status !== "pending" || !dictRemoveEquipo(c, Number(b.dataset.remove))) return;
+      renderRows();
+      sync();
+      save();
+      (tbody.querySelector(`tr:nth-child(${Math.min(Number(b.dataset.remove) + 1, c.data.equipos.length)}) input`) || btn.add).focus();
+    } else if (b === btn.add) {
+      if (c.status !== "pending" || !dictAddEquipo(c)) return;
+      renderRows();
+      sync();
+      save();
+      tbody.querySelector("tr:last-child input")?.focus();
+    } else if (b === btn.cancel) {
+      if (c.status !== "pending") return;
+      c.status = "cancelled";
+      dictUpdateNote(c);
+      sync();
+      save();
+    } else if (b === btn.unlock || b === btn.fix) {
+      if (!["interrupted", "done"].includes(c.status)) return;
+      c.status = "pending";
+      c.error = "";
+      sync();
+      save();
+    }
+  });
+  form.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    generateDictamen(entry, c, { sync, focusFirstMissing, form });
+  });
+
+  renderRows();
+  sync();
+  return form;
+}
+
+async function generateDictamen(entry, c, ui) {
+  if (c.status !== "pending") return; // evita el doble envío
+  const missing = dictFaltantes(c.fields, c.data, c.own);
+  if (missing.length) {
+    c.error = `Completa los ${missing.length} dato(s) marcados en rojo antes de generar.`;
+    ui.sync();
+    ui.focusFirstMissing();
+    return;
+  }
+  const myEpoch = epoch;
+  clearTimeout(dictSaveTimer);
+  c.status = "sending"; // se guarda: al recargar no se reintenta solo
+  c.error = "";
+  ui.sync();
+  save();
+  let res;
+  let body = {};
+  try {
+    res = await fetch("/api/dictamen/generar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dictPayload(c, state.conversationId)),
+    });
+    body = await res.json().catch(() => ({}));
+  } catch (err) {
+    if (myEpoch !== epoch || unloading) return;
+    // La petición pudo llegar al servidor: no se sabe si el dictamen se generó.
+    c.status = "interrupted";
+    c.error = `No se pudo confirmar la respuesta del servidor (${err.message}). Si no aparece la descarga, desbloquea la tarjeta para intentarlo de nuevo.`;
+    ui.sync();
+    save();
+    return;
+  }
+  if (myEpoch !== epoch) return; // la persona empezó otra conversación
+  if (!res.ok) {
+    c.status = "pending";
+    c.error = dictErrorText(body, res.status);
+    c.invalid = [...(Array.isArray(body.faltantes) ? body.faltantes : []), ...(body.field ? [String(body.field)] : [])];
+    ui.sync();
+    save();
+    if (c.invalid.length) ui.focusFirstMissing();
+    return;
+  }
+  c.status = "done";
+  c.result = { numeros: body.numeros, iniciales: body.iniciales, filename: body.filename, equipos: c.data.equipos.length };
+  if (body.iniciales) {
+    c.own.iniciales = String(body.iniciales); // como quedó en el documento (sin MDTG, normalizado)
+    const el = ui.form.querySelector('input[data-scope="own"][data-name="iniciales"]');
+    if (el) el.value = c.own.iniciales;
+  }
+  entry.documents = entry.documents || [];
+  entry.documents.push({ id: body.id, title: body.title, filename: body.filename, mime_type: body.mime_type, size: body.size, url: body.url });
+  dictUpdateNote(c);
+  updateEntry(entry);
+  ui.sync();
+  save();
+  scrollDown();
+}
+
+async function uploadOficio(file) {
+  if (!dictamenCfg || state.busy || !file) return;
+  const name = file.name || "oficio";
+  $("#welcome").style.display = "none";
+  const userEntry = { id: uid(), role: "user", text: `📎 ${name}` };
+  const bot = {
+    id: uid(), role: "assistant", text: "", plain: true, sources: [], documents: [], tools: [], confirms: [], notices: [],
+    filename: name, upload: "reading", busyText: "Leyendo oficio… (puede tardar hasta 1 min)",
+  };
+  state.transcript.push(userEntry, bot);
+  $("#messages").append(renderEntry(userEntry), renderEntry(bot));
+  scrollDown(true);
+  const finish = (text) => {
+    bot.upload = "done";
+    bot.busyText = "";
+    bot.text = text;
+    updateEntry(bot);
+    scrollDown();
+    save();
+  };
+  if (file.size > dictamenCfg.max_upload_mb * 1024 * 1024) {
+    finish(`No puedo leer «${name}»: el archivo supera el máximo de ${dictamenCfg.max_upload_mb} MB.`);
+    return;
+  }
+  const myEpoch = epoch;
+  const controller = new AbortController();
+  state.controller = controller; // «Detener» cancela la lectura
+  setBusy(true);
+  save();
+  let res = null;
+  let body = {};
+  let failure = null;
+  try {
+    const form = new FormData();
+    form.append("file", file, name);
+    if (state.conversationId) form.append("conversation_id", state.conversationId);
+    res = await fetch("/api/dictamen/oficio", { method: "POST", body: form, signal: controller.signal });
+    body = await res.json().catch(() => ({}));
+  } catch (err) {
+    failure = err;
+  } finally {
+    if (state.controller === controller) {
+      state.controller = null;
+      setBusy(false);
+    }
+  }
+  if (myEpoch !== epoch) return; // «Nueva conversación» durante la lectura: no tocar la nueva
+  if (failure && unloading) return; // se recarga la página: al volver se marca como interrumpida
+  if (failure) {
+    finish(failure.name === "AbortError" ? "Lectura del oficio cancelada." : `No se pudo contactar el servidor (${failure.message}).`);
+    return;
+  }
+  if (res.ok || (res.status === 502 && body && body.data)) {
+    const manual = !res.ok;
+    const c = dictNewCard({ ...body, filename: body.filename || name, manual }, dictamenCfg, uid());
+    bot.dictamen = c;
+    state.history.push(
+      { role: "user", content: `(Adjunto) oficio «${c.filename}»`, ref: c.id },
+      { role: "assistant", content: dictHistoryNote(c), ref: c.id },
+    );
+    finish(
+      manual
+        ? `No pude leer el oficio «${c.filename}». ${dictSentence(dictErrorText(body, res.status))} Abajo tienes la tarjeta vacía para capturar los datos.`
+        : dictSummary(c.detected, c.filename),
+    );
+    return;
+  }
+  finish(`No pude procesar «${name}»: ${dictSentence(dictErrorText(body, res.status))}`);
 }
 
 function renderAll() {
@@ -399,7 +896,9 @@ async function send(text) {
   setBusy(true);
   save();
 
+  const myEpoch = epoch;
   state.controller = new AbortController();
+  const controller = state.controller;
   let frame = null;
   const refresh = () => {
     if (frame) return;
@@ -410,7 +909,7 @@ async function send(text) {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: state.history.slice(-20), conversation_id: state.conversationId }),
+      body: JSON.stringify({ messages: state.history.slice(-20).map(({ ref, ...m }) => m), conversation_id: state.conversationId }),
       signal: state.controller.signal,
     });
     if (!res.ok || !res.body) {
@@ -467,6 +966,14 @@ async function send(text) {
   } catch (err) {
     if (err.name !== "AbortError") bot.notices.push({ kind: "error", message: `No se pudo completar la respuesta (${err.message}).` });
   } finally {
+    if (myEpoch !== epoch) {
+      // «Nueva conversación» con la respuesta en curso: no escribir en la conversación nueva
+      if (state.controller === controller) {
+        state.controller = null;
+        setBusy(false);
+      }
+      return;
+    }
     if (!finished) {
       // conserva lo que alcanzó a responder para que el historial siga siendo coherente
       state.history.push({ role: "assistant", content: bot.text || "(respuesta interrumpida)" });
@@ -525,8 +1032,13 @@ async function loadConfig() {
       sug.appendChild(b);
     });
     syncVoiceControls();
-    $("#doc-types").innerHTML = (cfg.documents || []).map((d) => `<li title="${escapeHtml(d.description)}">${escapeHtml(d.title)}</li>`).join("");
-    $("#document-count").textContent = (cfg.documents || []).length;
+    dictamenCfg = cfg.dictamen && cfg.dictamen.enabled ? cfg.dictamen : null;
+    $("#attach").hidden = !dictamenCfg;
+    $("#attach-input").accept = dictamenCfg ? dictamenCfg.accept || "" : "";
+    $("#doc-types").innerHTML =
+      (cfg.documents || []).map((d) => `<li title="${escapeHtml(d.description)}">${escapeHtml(d.title)}</li>`).join("") +
+      (dictamenCfg ? '<li title="Adjunta el oficio con el botón 📎 (PDF, Word o foto)">Dictamen técnico de equipos de cómputo (adjunta el oficio con 📎)</li>' : "");
+    $("#document-count").textContent = (cfg.documents || []).length + (dictamenCfg ? 1 : 0);
     const src = await (await fetch("/api/sources")).json();
     $("#source-count").textContent = (src.sources || []).length;
     $("#source-list").innerHTML =
@@ -578,8 +1090,9 @@ function setupViewport(autosize) {
 
 function init() {
   load();
-  state.transcript.forEach((e) => { e.pending = false; });
+  state.transcript.forEach((e) => { e.pending = false; dictOnLoad(e); });
   renderAll();
+  save();
   loadConfig();
 
   const input = $("#input");
@@ -640,8 +1153,41 @@ function init() {
     autosize();
     send(text);
   });
+  $("#attach").addEventListener("click", () => {
+    if (!state.busy) $("#attach-input").click();
+  });
+  $("#attach-input").addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = ""; // permite volver a elegir el mismo archivo
+    if (file) uploadOficio(file);
+  });
+  // Arrastrar y soltar un oficio en cualquier parte de la página
+  const hasFiles = (e) => Array.from((e.dataTransfer && e.dataTransfer.types) || []).includes("Files");
+  let dragDepth = 0;
+  const dropOff = () => { dragDepth = 0; document.body.classList.remove("dropping"); };
+  window.addEventListener("dragenter", (e) => {
+    if (!dictamenCfg || !hasFiles(e)) return;
+    dragDepth += 1;
+    document.body.classList.add("dropping");
+  });
+  window.addEventListener("dragleave", (e) => {
+    if (!dictamenCfg || !hasFiles(e)) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (!dragDepth) dropOff();
+  });
+  window.addEventListener("dragover", (e) => {
+    if (dictamenCfg && hasFiles(e)) e.preventDefault();
+  });
+  window.addEventListener("drop", (e) => {
+    if (!dictamenCfg || !hasFiles(e)) return;
+    e.preventDefault();
+    dropOff();
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) uploadOficio(file);
+  });
   $("#new-chat").addEventListener("click", () => {
     voice.cancel({ silent: true });
+    epoch += 1;
     if (state.busy) state.controller?.abort();
     Object.assign(state, { conversationId: null, history: [], transcript: [] });
     localStorage.removeItem(STORE_KEY);

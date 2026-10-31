@@ -1,0 +1,833 @@
+{
+ "_origen": "generate.js original de dictamen-bot con docxtemplater 3.71.1 (plantilla config/dictamen/original/dictamen_docxtemplater.docx, fecha fija 2026-01-09, TZ=America/Mexico_City)",
+ "input": {
+  "today": "2026-01-09",
+  "data": {
+   "oficio_recibido": "FGEO/VR&C/<12>/2026",
+   "fecha_oficio_recibido": "1° de octubre del 2026",
+   "cargo_remitente": "directora de \"Atención\" & Seguimiento\nFiscalía Regional <Costa>",
+   "nombre_remitente": "mtra. maría peña núñez",
+   "equipos": [
+    {
+     "tipo_equipo": "laptop",
+     "marca": "lenovo",
+     "modelo": "thinkpad e14 \"gen 2\"",
+     "numero_serie": "pf-2&3<4>",
+     "numero_inventario": "ñ-001",
+     "motivo": "disco duro dañado\nno enciende"
+    },
+    {
+     "tipo_equipo": "impresora multifunción",
+     "marca": "hp",
+     "modelo": "laserjet 'pro' m404 > m400",
+     "numero_serie": "vnb3k12345",
+     "numero_inventario": null,
+     "motivo": null
+    }
+   ]
+  },
+  "own": {
+   "numero_oficio": "fgeo/cgsi/1431/2026",
+   "dictamen_inicial": "7",
+   "iniciales": "igf",
+   "motivo": "pantalla dañada & teclado sin respuesta (cañón, acentuación: áéíóú ü)"
+  }
+ },
+ "expected": {
+  "blocks": [
+   {
+    "p": "",
+    "fmt": "443fecafc00c"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "SECCIÓN:",
+        "fmt": "7954536f29be"
+       }
+      ],
+      [
+       {
+        "p": "COORDINACIÓN GENERAL DE SISTEMAS E INFORMÁTICA.",
+        "fmt": "37bf6bc465c8"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NÚMERO:",
+        "fmt": "e8bb0629aed3"
+       }
+      ],
+      [
+       {
+        "p": "FGEO/CGSI/1431/2026",
+        "fmt": "4fcfb711bd9a"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "ASUNTO:",
+        "fmt": "87d0f908f844"
+       }
+      ],
+      [
+       {
+        "p": "EMISIÓN DE DICTAMEN",
+        "fmt": "319a5b0412f5"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "8c1f6acdea49"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "2dad319fd3b6"
+   },
+   {
+    "p": "",
+    "fmt": "39a9b2e8e2c6"
+   },
+   {
+    "p": "",
+    "fmt": "39a9b2e8e2c6"
+   },
+   {
+    "p": "Reyes Mantecón, San Bartolo Coyotepec, Oax., a 09 DE ENERO DEL 2026",
+    "fmt": "c52ca76b773d"
+   },
+   {
+    "p": "",
+    "fmt": "1350f87b9737"
+   },
+   {
+    "p": "MTRA. MARÍA PEÑA NÚÑEZ",
+    "fmt": "06247961eefc"
+   },
+   {
+    "p": "DIRECTORA DE \"ATENCIÓN\" & SEGUIMIENTO\nFISCALÍA REGIONAL <COSTA>",
+    "fmt": "fc9c4476c3f2"
+   },
+   {
+    "p": "P R E S E N T E",
+    "fmt": "71a96291c18b"
+   },
+   {
+    "p": "",
+    "fmt": "38f4311664fb"
+   },
+   {
+    "p": "El que suscribe, L.I. Marcelo Daniel Totolhua García, Coordinador General de Sistemas e Informática de la Fiscalía General del Estado de Oaxaca, por medio del presente, en atención a su oficio FGEO/VR&C/<12>/2026 de fecha 1° DE OCTUBRE DEL 2026, remitida al Departamento de Informática y Soporte Técnico, me permito informarle que se ha realizado una revisión minuciosa de los siguientes equipos:",
+    "fmt": "7ec4b81627b1"
+   },
+   {
+    "p": "",
+    "fmt": "4381d07b0bd6"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "NO. DICTAMEN",
+        "fmt": "21aa57846835"
+       }
+      ],
+      [
+       {
+        "p": "NO. INVENTARIO",
+        "fmt": "fa167f292ff3"
+       }
+      ],
+      [
+       {
+        "p": "EQUIPO",
+        "fmt": "711ba7d0d07e"
+       }
+      ],
+      [
+       {
+        "p": "MARCA",
+        "fmt": "3451943e9d1b"
+       }
+      ],
+      [
+       {
+        "p": "MODELO",
+        "fmt": "0029910d6f06"
+       }
+      ],
+      [
+       {
+        "p": "SERIE",
+        "fmt": "70d47ad1b8ec"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "7",
+        "fmt": "97a5d9c81bbb"
+       }
+      ],
+      [
+       {
+        "p": "Ñ-001",
+        "fmt": "fe0a25a7cf2e"
+       }
+      ],
+      [
+       {
+        "p": "LAPTOP",
+        "fmt": "eb11e66b6139"
+       }
+      ],
+      [
+       {
+        "p": "LENOVO",
+        "fmt": "4016fffa47df"
+       }
+      ],
+      [
+       {
+        "p": "THINKPAD E14 \"GEN 2\"",
+        "fmt": "4fdac0a508c7"
+       }
+      ],
+      [
+       {
+        "p": "PF-2&3<4>",
+        "fmt": "2410fb45edd6"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "8",
+        "fmt": "97817b4eaa13"
+       }
+      ],
+      [
+       {
+        "p": "S/N",
+        "fmt": "6b2b0270749d"
+       }
+      ],
+      [
+       {
+        "p": "IMPRESORA MULTIFUNCIÓN",
+        "fmt": "ab2e11e3ff3a"
+       }
+      ],
+      [
+       {
+        "p": "HP",
+        "fmt": "41397ce0721c"
+       }
+      ],
+      [
+       {
+        "p": "LASERJET 'PRO' M404 > M400",
+        "fmt": "c92b395e633c"
+       }
+      ],
+      [
+       {
+        "p": "VNB3K12345",
+        "fmt": "35a09102ef5e"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "4381d07b0bd6"
+   },
+   {
+    "p": "Por lo anterior, me permito emitir el siguiente DICTAMEN TÉCNICO, el cual se anexa a continuación, para los efectos legales y administrativos correspondientes.",
+    "fmt": "fd5648cb890c"
+   },
+   {
+    "p": "",
+    "fmt": "4381d07b0bd6"
+   },
+   {
+    "p": "Sin más por el momento le envió un cordial saludo.",
+    "fmt": "290ad9492404"
+   },
+   {
+    "p": "",
+    "fmt": "018d5ec68ef6"
+   },
+   {
+    "p": "",
+    "fmt": "17e016c2e954"
+   },
+   {
+    "p": "",
+    "fmt": "018d5ec68ef6"
+   },
+   {
+    "p": "A T E N T A M E N T E",
+    "fmt": "b8c195c4b1ed"
+   },
+   {
+    "p": "SUFRAGIO EFECTIVO, NO REELECCIÓN",
+    "fmt": "ee290a7b01ea"
+   },
+   {
+    "p": "“EL RESPETO AL DERECHO AJENO ES LA PAZ”",
+    "fmt": "391f3beced47"
+   },
+   {
+    "p": "COORDINADOR GENERAL DE SISTEMAS E INFORMÁTICA.",
+    "fmt": "10b5271a9275"
+   },
+   {
+    "p": "",
+    "fmt": "f1fee206793f"
+   },
+   {
+    "p": "",
+    "fmt": "69953c120dab"
+   },
+   {
+    "p": "L.I. MARCELO DANIEL TOTOLHUA GARCÍA",
+    "fmt": "efb80e40b11c"
+   },
+   {
+    "p": "",
+    "fmt": "d3425273ba43"
+   },
+   {
+    "p": "C.c.p. Minutario",
+    "fmt": "3addf18ae434"
+   },
+   {
+    "p": "",
+    "fmt": "51ddfbb48dfb"
+   },
+   {
+    "p": "MDTG/igf",
+    "fmt": "90b8999a945d"
+   },
+   {
+    "p": "DICTAMEN TÉCNICO",
+    "fmt": "56a05ff7da1b"
+   },
+   {
+    "p": "",
+    "fmt": "cb4af888a706"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "\tNo. DICTAMEN",
+        "fmt": "0c774d664769"
+       }
+      ],
+      [
+       {
+        "p": "7",
+        "fmt": "bb7872fe9be8"
+       }
+      ],
+      [
+       {
+        "p": "FECHA",
+        "fmt": "4ea8e5613b24"
+       }
+      ],
+      [
+       {
+        "p": "09 DE ENERO DEL 2026",
+        "fmt": "9b1ff14caaca"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "cb4af888a706"
+   },
+   {
+    "p": "En atención a la solicitud de fecha 1° DE OCTUBRE DEL 2026, me permito emitir el siguiente dictamen del equipo que a continuación se describe:",
+    "fmt": "0a3f9dbfaa67"
+   },
+   {
+    "p": "",
+    "fmt": "6c7baef559ee"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "CARACTERÍSTICAS DEL EQUIPO A DICTAMINAR",
+        "fmt": "8a4d7893d62a"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "TIPO DE EQUIPO",
+        "fmt": "099bf56ba51b"
+       }
+      ],
+      [
+       {
+        "p": "LAPTOP",
+        "fmt": "47d7d3fb11b9"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NUMERO DE INVENTARIO",
+        "fmt": "dd16e1618144"
+       }
+      ],
+      [
+       {
+        "p": "Ñ-001",
+        "fmt": "f11d368d8c56"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "MARCA",
+        "fmt": "957edefaf910"
+       }
+      ],
+      [
+       {
+        "p": "LENOVO",
+        "fmt": "8793c1b929b3"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "MODELO",
+        "fmt": "25361c2f0292"
+       }
+      ],
+      [
+       {
+        "p": "THINKPAD E14 \"GEN 2\"",
+        "fmt": "6b53fd9df210"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NÚMERO DE SERIE",
+        "fmt": "57c6772d5b2b"
+       }
+      ],
+      [
+       {
+        "p": "PF-2&3<4>",
+        "fmt": "aff3938ed15e"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "OTROS COMPONENTES",
+        "fmt": "eb7b95741973"
+       }
+      ],
+      [
+       {
+        "p": "---",
+        "fmt": "1cdbc8d27154"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "e1fb5152fdb3"
+   },
+   {
+    "p": "Después de haber realizado una revisión minuciosa y pruebas al equipo arriba mencionado, se emite el siguiente dictamen: DISCO DURO DAÑADO\nNO ENCIENDE.",
+    "fmt": "4515d65c3b46"
+   },
+   {
+    "p": "",
+    "fmt": "52c7242b9de6"
+   },
+   {
+    "p": "En caso de considerarlo, iniciar los trámites de baja ante el área de Inventarios.",
+    "fmt": "1b92ca63c3f8"
+   },
+   {
+    "p": "",
+    "fmt": "c9a72e72322c"
+   },
+   {
+    "p": "",
+    "fmt": "3a6b15e7e89a"
+   },
+   {
+    "p": "A T E N T A M E N T E",
+    "fmt": "ff4b2ab04f5e"
+   },
+   {
+    "p": "SUFRAGIO EFECTIVO, NO REELECCIÓN",
+    "fmt": "bf687da5963b"
+   },
+   {
+    "p": "“EL RESPETO AL DERECHO AJENO ES LA PAZ”",
+    "fmt": "1874197b4f7b"
+   },
+   {
+    "p": "COORDINADOR GENERAL DE SISTEMAS E INFORMÁTICA.",
+    "fmt": "9b15e3e9ed50"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "\tL.I. MARCELO DANIEL TOTOLHUA GARCÍA",
+    "fmt": "878ef1343b72"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "bcb03d3ba394"
+   },
+   {
+    "p": "C.c.p. Minutario",
+    "fmt": "4cb22d80453a"
+   },
+   {
+    "p": "MDTG/igf",
+    "fmt": "df3235ee5a39"
+   },
+   {
+    "p": "DICTAMEN TÉCNICO",
+    "fmt": "56a05ff7da1b"
+   },
+   {
+    "p": "",
+    "fmt": "cb4af888a706"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "\tNo. DICTAMEN",
+        "fmt": "0c774d664769"
+       }
+      ],
+      [
+       {
+        "p": "8",
+        "fmt": "96e152278484"
+       }
+      ],
+      [
+       {
+        "p": "FECHA",
+        "fmt": "4ea8e5613b24"
+       }
+      ],
+      [
+       {
+        "p": "09 DE ENERO DEL 2026",
+        "fmt": "9b1ff14caaca"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "cb4af888a706"
+   },
+   {
+    "p": "En atención a la solicitud de fecha 1° DE OCTUBRE DEL 2026, me permito emitir el siguiente dictamen del equipo que a continuación se describe:",
+    "fmt": "0a3f9dbfaa67"
+   },
+   {
+    "p": "",
+    "fmt": "6c7baef559ee"
+   },
+   {
+    "tbl": [
+     [
+      [
+       {
+        "p": "CARACTERÍSTICAS DEL EQUIPO A DICTAMINAR",
+        "fmt": "8a4d7893d62a"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "TIPO DE EQUIPO",
+        "fmt": "099bf56ba51b"
+       }
+      ],
+      [
+       {
+        "p": "IMPRESORA MULTIFUNCIÓN",
+        "fmt": "9164df76a457"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NUMERO DE INVENTARIO",
+        "fmt": "dd16e1618144"
+       }
+      ],
+      [
+       {
+        "p": "S/N",
+        "fmt": "64c596a9cef7"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "MARCA",
+        "fmt": "957edefaf910"
+       }
+      ],
+      [
+       {
+        "p": "HP",
+        "fmt": "50ca215fec58"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "MODELO",
+        "fmt": "25361c2f0292"
+       }
+      ],
+      [
+       {
+        "p": "LASERJET 'PRO' M404 > M400",
+        "fmt": "38f315805a48"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "NÚMERO DE SERIE",
+        "fmt": "57c6772d5b2b"
+       }
+      ],
+      [
+       {
+        "p": "VNB3K12345",
+        "fmt": "741433764f6e"
+       }
+      ]
+     ],
+     [
+      [
+       {
+        "p": "OTROS COMPONENTES",
+        "fmt": "eb7b95741973"
+       }
+      ],
+      [
+       {
+        "p": "---",
+        "fmt": "1cdbc8d27154"
+       }
+      ]
+     ]
+    ]
+   },
+   {
+    "p": "",
+    "fmt": "e1fb5152fdb3"
+   },
+   {
+    "p": "Después de haber realizado una revisión minuciosa y pruebas al equipo arriba mencionado, se emite el siguiente dictamen: PANTALLA DAÑADA & TECLADO SIN RESPUESTA (CAÑÓN, ACENTUACIÓN: ÁÉÍÓÚ Ü).",
+    "fmt": "72e0ead30c2a"
+   },
+   {
+    "p": "",
+    "fmt": "52c7242b9de6"
+   },
+   {
+    "p": "En caso de considerarlo, iniciar los trámites de baja ante el área de Inventarios.",
+    "fmt": "1b92ca63c3f8"
+   },
+   {
+    "p": "",
+    "fmt": "c9a72e72322c"
+   },
+   {
+    "p": "",
+    "fmt": "3a6b15e7e89a"
+   },
+   {
+    "p": "A T E N T A M E N T E",
+    "fmt": "ff4b2ab04f5e"
+   },
+   {
+    "p": "SUFRAGIO EFECTIVO, NO REELECCIÓN",
+    "fmt": "bf687da5963b"
+   },
+   {
+    "p": "“EL RESPETO AL DERECHO AJENO ES LA PAZ”",
+    "fmt": "1874197b4f7b"
+   },
+   {
+    "p": "COORDINADOR GENERAL DE SISTEMAS E INFORMÁTICA.",
+    "fmt": "9b15e3e9ed50"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "\tL.I. MARCELO DANIEL TOTOLHUA GARCÍA",
+    "fmt": "878ef1343b72"
+   },
+   {
+    "p": "",
+    "fmt": "205dd3a81f7c"
+   },
+   {
+    "p": "",
+    "fmt": "bcb03d3ba394"
+   },
+   {
+    "p": "C.c.p. Minutario",
+    "fmt": "4cb22d80453a"
+   },
+   {
+    "p": "MDTG/igf",
+    "fmt": "df3235ee5a39"
+   }
+  ],
+  "tables": [
+   [
+    2,
+    2,
+    2
+   ],
+   [
+    6,
+    6,
+    6
+   ],
+   [
+    4
+   ],
+   [
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   [
+    4
+   ],
+   [
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ]
+  ],
+  "page_breaks": 2,
+  "sections": 1,
+  "header_default": [
+   "",
+   "",
+   "\"2026, Año del Bicentenario del Natalicio de Margarita Maza Parada, Ejemplo de Dignidad, Lealtad y Servicio a la Nación\""
+  ],
+  "footer_default": [
+   "",
+   "Centro Administrativo del Poder Ejecutivo y Judicial | “Gral. Porfirio Díaz, Soldado de la Patria” | Edificio Jesús “Chú” Rasgado | Primer Nivel | Reyes Mantecón, san Bartolo Coyotepec | Oaxaca | C.P. 71250 | (951) 5016900 Ext. 20480",
+   "",
+   ""
+  ]
+ }
+}

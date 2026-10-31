@@ -15,6 +15,9 @@ servicio externo, solo cuando la persona lo pide y confirma los datos.
 - **Documentos**: cada tipo de documento definido en YAML se vuelve una *tool* del LLM. El
   LLM reúne los datos, el usuario los revisa y corrige en una tarjeta, y al presionar
   **Generar documento** se llama al servicio externo.
+- **Dictámenes técnicos** (uso interno de la CGSI de la Fiscalía General del Estado de Oaxaca):
+  se adjunta un oficio con 📎, Qwen extrae los datos, la persona los revisa en una tarjeta y se
+  genera el DOCX con la plantilla oficial. Ver [Dictámenes técnicos](#dictámenes-técnicos).
 
 ```
 Navegador ──SSE──► FastAPI (app/main.py)
@@ -27,7 +30,8 @@ Navegador ──SSE──► FastAPI (app/main.py)
                       │
                       ├─ POST /api/documents ─► DocumentConnector ─► servicio de documentos
                       │                          (app/documents/)     (mock: mock_doc_service/)
-                      └─ Ollama (Mac Studio) ◄── chat + embeddings
+                      ├─ POST /api/dictamen/* ─► app/dictamen/ (extracción con Qwen, docxtpl)
+                      └─ Ollama (Mac Studio) ◄── chat + embeddings + lectura de oficios
 ```
 
 ## Fuentes indexadas
@@ -82,6 +86,7 @@ Para una demo en Docker/Coolify, consulta [Despliegue](docs/deployment.md).
 | `RAG_QUERY_REWRITE` | `true` | Reescritura de la pregunta con terminología jurídica |
 | `DOC_SERVICE_URL` / `DOC_SERVICE_TOKEN` | `http://127.0.0.1:8701` / vacío | Servicio de documentos y su token (Bearer) |
 | `CONFIRM_DOCUMENTS` | `true` | Tarjeta de confirmación antes de llamar al servicio |
+| `DICTAMEN_*` | ver abajo | [Dictámenes técnicos](#dictámenes-técnicos) |
 
 ## Conectar tu servicio de documentos
 
@@ -129,6 +134,123 @@ curl -s localhost:8700/api/documents -H 'Content-Type: application/json' \
   -d '{"type":"carta_poder","data":{"otorgante_nombre":"A","apoderado_nombre":"B","dependencia":"SAT","tramite":"recoger e.firma","testigo1_nombre":"C","testigo2_nombre":"D","lugar":"CDMX"}}'
 ```
 
+## Dictámenes técnicos
+
+Port a Python, dentro del mismo chat, del bot de Telegram *dictamen-bot* de la Coordinación
+General de Sistemas e Informática (CGSI) de la Fiscalía General del Estado de Oaxaca. Mismo
+flujo, sin Telegram y con un modelo local en lugar de Gemini.
+
+### Flujo
+
+1. La persona pulsa **📎** junto al cuadro de texto (o arrastra el archivo a la página) y elige el
+   oficio que pide el dictamen: PDF, Word (`.docx`) o foto JPG/PNG.
+2. En el chat aparece «📎 nombre del archivo» y «Leyendo oficio…». El servidor detecta el tipo
+   real por sus bytes (no confía en la extensión) y Qwen extrae los datos:
+   - DOCX y PDF con texto: se envía el texto (párrafos y tablas en orden). Es lo más rápido.
+   - PDF escaneado: hasta `DICTAMEN_MAX_PAGES` páginas como imagen. Foto: como imagen.
+3. El asistente responde «Detecté N equipo(s)…» con una **tarjeta editable** que muestra TODO lo
+   extraído: los datos del oficio recibido, los datos del dictamen (número de oficio, primer
+   número de dictamen, iniciales de los técnicos y motivo) y la tabla de equipos (agregar o
+   quitar filas; inventario vacío = `S/N`; motivo propio opcional por equipo). Los datos que
+   faltan se marcan en rojo y se recalculan al escribir.
+4. **Generar dictamen** valida en el servidor y devuelve el DOCX (`dictamen_<oficio>_<fecha>.docx`)
+   en una tarjeta de descarga, con los números de dictamen y las iniciales que quedaron impresos.
+   Se descarga desde `/api/documents/{id}` y caduca como los demás documentos.
+
+Si Qwen no responde o no puede leer el archivo, la tarjeta aparece vacía para capturar los datos
+a mano. Durante el envío todo queda bloqueado. Si se recarga la página a media generación, la
+tarjeta queda «interrumpida» y hay que desbloquearla a propósito para reintentar. Así no se
+generan dos dictámenes sin querer. La tarjeta y sus ediciones se guardan en el navegador.
+
+Diferencias deliberadas con el bot original: solo se editan campos conocidos (lista blanca), sin
+equipos no se genera, `dictamen_inicial` debe ser solo dígitos (y conserva los ceros a la
+izquierda), el motivo general solo se pide si algún equipo no tiene el suyo, «MDTG/» no se
+duplica, un motivo con punto final no produce «..», la fecha del oficio es la de
+America/Mexico_City, y se quitan caracteres que Word no admite.
+
+### Endpoints
+
+| Método y ruta | Descripción |
+|---|---|
+| `GET /api/dictamen/config` | `{"enabled", "fields", "tecnicos", "max_upload_mb", "max_equipos", "accept"}`. También va en `GET /api/config` como `dictamen` (o `null` si está desactivado). |
+| `POST /api/dictamen/oficio` | multipart `file` (+ `conversation_id` opcional). 200 → `{"filename", "data", "own", "faltantes", "mode", "pages", "total_pages", "elapsed_s"}`; 413 si excede el tamaño; 415 si no es PDF/DOCX/JPG/PNG; 502 → `{"message", "data", "own", "faltantes"}` vacíos para captura manual. |
+| `POST /api/dictamen/generar` | JSON `{"data", "own", "conversation_id"}` (cadenas ≤ 500 caracteres, ≤ 100 equipos). 200 → datos del documento (`id`, `filename`, `url`…) más `"iniciales"` y `"numeros": [primero, último]`; 422 → `{"message", "errors"}` (tipos, longitudes, iniciales no válidas) o `{"message", "faltantes"}`; 503 si falta la plantilla. |
+
+Con `DICTAMEN_ENABLED=false` los tres responden 404 y la interfaz oculta el botón 📎.
+Los nombres de `faltantes` son los del bot: `oficio_recibido`, `equipos`, `equipo_2_marca`,
+`numero_oficio`, `dictamen_inicial`…
+
+```bash
+curl -s localhost:8700/api/dictamen/oficio -F file=@oficio.pdf | python -m json.tool
+curl -s localhost:8700/api/dictamen/generar -H 'Content-Type: application/json' -d @datos.json
+```
+
+### Plantilla
+
+- `config/dictamen/original/dictamen_docxtemplater.docx`: copia exacta de la plantilla del bot
+  (sintaxis docxtemplater, `{campo}` y `{#equipos}…{/equipos}`).
+- `config/dictamen/dictamen.docx`: la que usa la app (sintaxis docxtpl/Jinja). Se genera **una
+  vez** con `scripts/convert_dictamen_template.py`. El script también quita los campos
+  MERGEFIELD, la conexión de combinación de correspondencia al Excel local y los metadatos
+  personales.
+
+Si la CGSI cambia la plantilla original, reemplaza el archivo en `config/dictamen/original/` y
+vuelve a convertirla:
+
+```bash
+.venv/bin/python scripts/convert_dictamen_template.py           # escribe config/dictamen/dictamen.docx
+.venv/bin/python scripts/convert_dictamen_template.py --check   # verifica que esté al día
+.venv/bin/python -m pytest -q tests/test_dictamen_generate.py   # equivalencia con docxtemplater
+```
+
+La equivalencia con el generador original (Node + docxtemplater) se comprueba con las
+instantáneas `tests/fixtures/dictamen/expected_*.json`. Si cambia la plantilla, hay que
+regenerarlas con el bot original (ver el encabezado de `tests/test_dictamen_generate.py`). El
+texto fijo de la plantilla (nombre del coordinador, leyenda del año, redacción) se edita en Word
+sobre la original y se vuelve a convertir.
+
+### Técnicos
+
+`config/dictamen/tecnicos.json` es una lista `[{"nombre": "", "iniciales": "igf"}, …]`. Las
+iniciales se escriben separadas por `/`, `,`, `;`, `-`, `&`, `.` o « y ». Un «MDTG» al inicio se
+ignora porque ya está en la plantilla. Si el catálogo tiene **nombres**, se acepta el nombre (o
+parte de él) y se rechaza lo que no coincida, con la lista de técnicos válidos. Con nombres vacíos
+(como hoy) se aceptan iniciales libres. La tarjeta sugiere las iniciales del catálogo.
+
+### Variables
+
+| Variable | Por defecto | Descripción |
+|---|---|---|
+| `DICTAMEN_ENABLED` | `true` (`false` en `compose.yaml`) | Activa el botón 📎 y los endpoints |
+| `DICTAMEN_TEMPLATE_PATH` | `config/dictamen/dictamen.docx` | Plantilla docxtpl |
+| `DICTAMEN_TECNICOS_PATH` | `config/dictamen/tecnicos.json` | Catálogo de técnicos |
+| `DICTAMEN_MAX_UPLOAD_MB` | `15` | Tamaño máximo del oficio. Esa ruta tiene su propio tope; los demás POST siguen en `MAX_REQUEST_BYTES` |
+| `DICTAMEN_MAX_PAGES` | `4` | Páginas de un PDF escaneado que se envían como imagen |
+| `DICTAMEN_EXTRACT_MODEL` | vacío (= `LLM_MODEL`) | Modelo para leer oficios (debe aceptar imágenes) |
+| `DICTAMEN_EXTRACT_TIMEOUT_S` | `240` | Tiempo máximo de la lectura |
+
+La lectura usa el mismo `LLM_BASE_URL`/`LLM_API_KEY` que el chat, con temperatura 0, sin
+razonamiento y salida JSON con esquema. Las reglas de cada campo van en el prompt. Con Ollama,
+las `description` del esquema no orientan al modelo.
+
+### Privacidad y latencia
+
+- Todo ocurre en la red local: el oficio va solo al Qwen de la Mac Studio y el DOCX se genera
+  en el servidor con docxtpl. No se usa Gemini ni Telegram ni ningún servicio externo.
+- El oficio subido no se conserva: se procesa durante la petición (con más de 1 MB, Starlette usa
+  un archivo temporal que borra al terminar). El dictamen generado se guarda en
+  `data/generated/` y se borra a las `DOCUMENT_RETENTION_HOURS` horas. Los registros anotan modo,
+  páginas, número de equipos y tiempos, pero no el contenido del oficio.
+- En el chat solo queda una nota «(Adjunto) oficio «x»» / «(Sistema) Detecté N equipos…» para
+  que el asistente sepa que hubo un dictamen. Los datos del oficio no se envían al chat.
+- **No hay autenticación.** La plantilla lleva el membrete y la firma de la Fiscalía; por eso
+  la demo pública lo desactiva. Úsalo solo en una instalación interna (ver
+  [Despliegue](docs/deployment.md#dictámenes-técnicos)).
+- Latencia medida con `qwen3.8:27b-mlx`: PDF con texto, ~5-7 s; foto o PDF escaneado de una
+  página, ~13-22 s. Con varias páginas o con el modelo ocupado (las lecturas van en serie) puede
+  llegar a 1 min. Generar el DOCX tarda menos de 0.2 s, incluso con 100 equipos. Revisa siempre
+  series e inventarios leídos de fotos: el modelo puede confundir O/0 o Q/O.
+
 ## Estructura
 
 ```
@@ -139,10 +261,12 @@ app/
   prompts.py         prompt del sistema y formato de fuentes
   rag/               ingest, limpieza de PDFs, parsers (ley / fichas SAT / html), índice, búsqueda, reescritura
   documents/         registro de documentos (YAML → tools + validación) y conector HTTP
+  dictamen/          dictámenes técnicos: campos y faltantes, técnicos, extracción con Qwen, render docxtpl
   static/            UI (HTML/CSS/JS sin dependencias)
 mock_doc_service/    servicio simulado que implementa el contrato y genera PDFs (fpdf2)
-config/              sources.yaml, document_services.yaml
+config/              sources.yaml, document_services.yaml, dictamen/ (plantillas y técnicos)
 scripts/dev.sh       levanta mock + chat
+scripts/convert_dictamen_template.py   convierte la plantilla del dictamen a docxtpl
 tests/               pruebas (pytest)
 ```
 

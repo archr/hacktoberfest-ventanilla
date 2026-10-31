@@ -75,24 +75,32 @@ recibe ni guarda audio: el texto permanece en el borrador hasta que la persona p
 
 - Pulsar el micrófono inicia la escucha; pulsarlo de nuevo termina y permite revisar.
 - «Cancelar» restaura el borrador anterior. Los resultados tardíos se descartan.
-- La escucha se detiene automáticamente a los 3 segundos desde que comienza el
-  reconocimiento, sin contar la espera del permiso. También se detiene al ocultar o
-  abandonar la página.
+- La escucha se detiene tras 3 segundos de silencio continuo. Un detector local con
+  `getUserMedia` y Web Audio mide el nivel del micrófono cada 100 ms (umbral RMS 0.01);
+  el sonido reinicia la cuenta. No depende de cuándo llegan las transcripciones y
+  no graba ni envía el audio que analiza. El ruido de fondo puede retrasar la parada.
+- La cuenta empieza cuando el reconocimiento y la captura están activos, sin contar
+  la espera del permiso. Si el detector no está disponible o se interrumpe, se conserva
+  la parada manual anterior. El estado visible indica cuándo se detecta silencio.
+- Se conserva el máximo de un minuto y la parada al ocultar o abandonar la página.
+  Al terminar, cancelar o fallar se liberan también el detector y su micrófono.
 - Los errores de permisos, silencio o red no bloquean el teclado.
 - No se reinicia automáticamente el micrófono cuando el navegador termina una sesión.
 
 Pruebas del controlador, sin dependencias ni acceso al micrófono:
 
 ```sh
-node --test tests/voice.test.mjs
+node --test tests/voice.test.mjs tests/silence.test.mjs
 ```
 
 La prueba manual final debe hacerse desde HTTPS con un micrófono real: permitir el
-acceso, dictar una frase, detener, corregir y enviar; después comprobar la cancelación
-y el permiso denegado. Las pruebas simuladas no miden la precisión ni la disponibilidad
+acceso, hablar más de 3 segundos, pausar menos de 3 segundos, seguir hablando y luego
+guardar silencio 3 segundos; corregir y enviar. Comprobar también la cancelación, el
+permiso denegado y ruido de fondo. Las pruebas simuladas no miden la precisión ni la disponibilidad
 del servicio de voz del dispositivo.
 
 Referencia: [SpeechRecognition en MDN](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition).
+Detector: [AnalyserNode en MDN](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getFloatTimeDomainData).
 
 ## Docker Compose sin Coolify
 

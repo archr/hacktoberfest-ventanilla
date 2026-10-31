@@ -1,5 +1,6 @@
 // Ventanilla — frontend del chat (sin dependencias).
-import { VoiceDictation } from "./voice.mjs?v=2";
+import { VoiceDictation } from "./voice.mjs?v=3";
+import { createSilenceMonitor } from "./silence.mjs?v=1";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -591,6 +592,7 @@ function init() {
   voiceSupported = window.isSecureContext && typeof Recognition === "function";
   voice = new VoiceDictation({
     Recognition: voiceSupported ? Recognition : null,
+    createSilenceMonitor,
     onText: (text) => { input.value = text; autosize(); },
     onState: ({ phase, message }) => {
       voicePhase = phase;

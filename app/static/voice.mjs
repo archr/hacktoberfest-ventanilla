@@ -1,10 +1,11 @@
 // Dictado nativo: el proveedor del navegador procesa la voz, no el backend.
 export class VoiceDictation {
-  constructor({ Recognition, onText, onState,
+  constructor({ Recognition, onText, onState, createSilenceMonitor,
     setTimer = (callback, delay) => setTimeout(callback, delay), clearTimer = (id) => clearTimeout(id) }) {
     this.Recognition = Recognition;
     this.onText = onText;
     this.onState = onState;
+    this.createSilenceMonitor = createSilenceMonitor;
     this.setTimer = setTimer;
     this.clearTimer = clearTimer;
     this.session = null;
@@ -27,6 +28,7 @@ export class VoiceDictation {
     if (this.session !== session) return;
     this.clearTimer(session.timer);
     this.session = null; // Invalida eventos tardíos antes de abortar el micrófono.
+    session.silenceMonitor?.stop();
     if (abort) {
       try { session.recognition.abort(); } catch { /* Ya estaba detenido. */ }
     }
@@ -55,8 +57,9 @@ export class VoiceDictation {
       }
       if (session.phase !== "starting") return;
       session.phase = "listening";
-      this.update("listening", "Escuchando… se detendrá automáticamente a los 3 segundos.");
-      this.timer(session, () => this.stop(), 3_000);
+      session.silenceMonitor?.arm();
+      this.listeningStatus(session);
+      this.timer(session, () => this.stop(), 60_000);
     };
     recognition.onresult = (event) => {
       if (this.session !== session) return;
@@ -89,6 +92,22 @@ export class VoiceDictation {
 
     this.update("starting", "Esperando permiso del micrófono…");
     this.timer(session, () => this.finish(session, "No se pudo iniciar el micrófono. Revisa el permiso e intenta de nuevo.", "error", true), 20_000);
+    // El detector arranca desde el clic, pero solo cuenta silencio al estar escuchando.
+    try {
+      session.silenceMonitor = this.createSilenceMonitor?.({
+        onSilence: () => {
+          if (this.session === session && session.phase === "listening") this.stop();
+        },
+        onReady: () => {
+          session.silenceReady = true;
+          this.listeningStatus(session);
+        },
+        onUnavailable: () => {
+          session.silenceReady = false;
+          this.listeningStatus(session);
+        },
+      });
+    } catch { /* Si falla la detección local, sigue disponible la parada manual. */ }
     try { recognition.start(); }
     catch (error) {
       this.finish(session, error.name === "NotAllowedError"
@@ -99,11 +118,19 @@ export class VoiceDictation {
     return true;
   }
 
+  listeningStatus(session) {
+    if (this.session !== session || session.phase !== "listening") return;
+    this.update("listening", session.silenceReady
+      ? "Escuchando… se detendrá tras 3 segundos de silencio."
+      : "Escuchando… pulsa el micrófono para terminar (máximo un minuto).");
+  }
+
   stop() {
     const session = this.session;
     if (!session || session.phase === "stopping") return;
     if (session.phase === "starting") { this.cancel(); return; }
     session.phase = "stopping";
+    session.silenceMonitor?.stop();
     this.update("stopping", "Terminando dictado…");
     this.timer(session, () => this.finish(session,
       session.text ? "Dictado detenido. Revisa el texto antes de enviarlo." : "No se detectó voz. Puedes intentar de nuevo.", "idle", true), 5_000);

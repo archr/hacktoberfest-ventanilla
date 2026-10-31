@@ -16,5 +16,6 @@ MOCK_PID=$!
 trap 'kill $MOCK_PID 2>/dev/null || true' EXIT
 
 echo "Chat:  http://$HOST:$APP_PORT"
+echo "Presentación: http://$HOST:$APP_PORT/presentacion/"
 echo "Mock de documentos: http://127.0.0.1:$MOCK_PORT/docs"
 exec $PY -m uvicorn app.main:app --host "$HOST" --port "$APP_PORT"

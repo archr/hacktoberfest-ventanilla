@@ -170,6 +170,17 @@ Proyecto abierto para **Hacktoberfest**: revisa [CONTRIBUTING.md](CONTRIBUTING.m
 el entorno e ideas de contribución (nuevas fuentes oficiales, plantillas de documentos,
 evaluación de respuestas, accesibilidad, despliegue).
 
+## Presentación
+
+La presentación del proyecto para Hacktoberfest 2026 vive en
+[`app/presentacion/`](app/presentacion/index.html) y la app la sirve junto al chat en
+**`/presentacion/`** (en local: http://127.0.0.1:8700/presentacion/ tras `./scripts/dev.sh`).
+Su diapositiva «Demo en vivo» muestra el chat real de la misma app.
+
+Usa ← → para avanzar, `N` para las notas del presentador y `F` para pantalla completa.
+Dentro de la demo en vivo, las flechas escriben en el chat: usa `Esc` y luego →, o
+RePág / AvPág. Para exportarla a PDF, imprime desde Chrome con márgenes en "Ninguno".
+
 ## Licencia
 
 [MIT](LICENSE). Los textos legales y fichas de trámite se descargan de sus fuentes oficiales al

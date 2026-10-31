@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ventanilla · La ventanilla que nunca cierra — Hacktoberfest 2026</title>
+  <meta name="description" content="Presentación de Ventanilla: chat de trámites y leyes de México con fuentes oficiales. Proyecto open source para Hacktoberfest 2026." />
+  <meta name="theme-color" content="#3d5f58" />
+  <link rel="preload" href="assets/fonts/barlow-sc-800.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/martian-mono-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23e97b77'/><path d='M9 9l7 15 7-15' fill='none' stroke='%2310201d' stroke-width='3.4' stroke-linejoin='miter'/></svg>" />
+</head>
+<body>
+<main class="deck" aria-label="Presentación de Ventanilla">
+
+  <!-- 1 · PORTADA -->
+  <section class="slide t-forest" aria-label="Portada">
+    <div class="cover">
+      <div>
+        <p class="eyebrow rise">Hacktoberfest 2026 · Proyecto open source</p>
+        <div class="brandline rise d1">
+          <span class="vlogo"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 8l8 17 8-17" fill="none" stroke="#10201d" stroke-width="3.6"/></svg></span>
+          <span class="wordmark">Ventanilla</span>
+        </div>
+        <h1 class="display xl rise d2">La ventanilla<br>que <em>nunca cierra</em>.</h1>
+        <p class="lead rise d3">Trámites y leyes de México en una conversación. Preguntas como hablas; responde con fuentes oficiales.</p>
+        <div class="chips rise d4">
+          <span class="chip solid">v1 · MVP</span>
+          <span class="chip">IA open-weight</span>
+          <span class="chip">Licencia MIT</span>
+        </div>
+      </div>
+      <div class="card chat-mini rise d2" aria-hidden="true">
+        <div class="chat-bar"><span class="dot"></span>Ventanilla · en línea</div>
+        <div class="chat-body">
+          <div class="bubble user">¿Qué necesito para tramitar mi e.firma en el SAT?</div>
+          <div class="bubble bot">
+            <span class="skel w90"></span><span class="skel w75"></span><span class="skel w60"></span>
+            <span class="cite">[1] Anexo 2 RMF 2026 · página exacta ↗</span>
+          </div>
+        </div>
+        <div class="composer-mini">Escribe tu pregunta…<b>Enviar</b></div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>github.com/archr/hacktoberfest-ventanilla</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Hola. Venimos a hablar de algo que todos hemos vivido: hacer un trámite en México.</p>
+      <p>Ventanilla es una ventanilla virtual: le preguntas como hablas y te responde con la ley o la ficha oficial en la mano.</p>
+    </aside>
+  </section>
+
+  <!-- 2 · EL PROBLEMA -->
+  <section class="slide t-cream" aria-label="El problema">
+    <div class="problem">
+      <div>
+        <p class="eyebrow rise">01 · El problema</p>
+        <h2 class="display xl rise d1">“Pase a la siguiente<br><em>ventanilla</em>.”</h2>
+        <p class="lead rise d2">Antes de hacer un trámite hay que entenderlo. Y casi nunca está claro:</p>
+        <div class="qgrid">
+          <div class="q rise d2"><span>¿?</span>¿Qué requisitos piden y dónde están publicados?</div>
+          <div class="q rise d3"><span>¿?</span>¿Existe un formato o lo tengo que redactar yo?</div>
+          <div class="q rise d3"><span>¿?</span>¿Qué dice la ley sobre mi caso?</div>
+          <div class="q rise d4"><span>¿?</span>¿A qué oficina voy y en qué horario atiende?</div>
+        </div>
+      </div>
+      <div class="ticket-wrap">
+        <div class="ticket rise d2" aria-label="Ticket de turno">
+          <div class="t1">SU TURNO</div>
+          <div class="num">A-347</div>
+          <div class="t2">Atendiendo: A-112<br>Tiempo estimado: ¿?</div>
+          <div class="t3">Requisitos: pregunte<br>en la ventanilla 7.</div>
+        </div>
+        <div class="rise d4">
+          <div class="queue" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="you"></i>
+          </div>
+          <div class="queue-label"><span>La fila</span><span>Tú →</span></div>
+        </div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Todos conocemos la frase: “pase a la siguiente ventanilla”.</p>
+      <p>El problema empieza antes de la fila: no sabes qué requisitos piden, si existe un formato, qué dice la ley o a dónde ir.</p>
+    </aside>
+  </section>
+
+  <!-- 3 · LOS DATOS -->
+  <section class="slide t-deep" aria-label="Los datos">
+    <div class="data">
+      <div>
+        <p class="eyebrow rise">02 · No es una anécdota</p>
+        <div class="big-stat rise d1">57.7<small>%</small></div>
+        <p class="stat-copy rise d2">de quienes hicieron su trámite más reciente en una <b>oficina de gobierno</b> enfrentó algún problema.</p>
+        <div class="mini-stats rise d3">
+          <div class="mini-stat"><b>51.7 %</b><span>hizo sus trámites y pagos en oficinas de gobierno</span></div>
+          <div class="mini-stat"><b>21.7 %</b><span>los hizo por internet</span></div>
+        </div>
+      </div>
+      <div>
+        <h3 class="chart-title rise">¿Qué problemas encontraron?</h3>
+        <p class="chart-sub rise d1">En oficinas de gobierno · % de quienes tuvieron un problema · respuesta múltiple · <b style="color:var(--gold)">INFO</b> = problema de información</p>
+        <div class="bars" role="table" aria-label="Problemas en trámites, ENCIG 2025">
+          <div class="bar-row" role="row"><div class="bar-label" role="rowheader">Largas filas</div><div class="bar-track" role="cell"><div class="bar grow" style="width:330px" title="Largas filas: 54.5 %"></div><span class="bar-val">54.5</span></div></div>
+          <div class="bar-row" role="row"><div class="bar-label" role="rowheader">No se exhibían los requisitos</div><div class="bar-track" role="cell"><div class="bar hl grow" style="width:210px" title="No se exhibían los requisitos: 34.7 %"></div><span class="bar-val">34.7</span><span class="tag">Info</span></div></div>
+          <div class="bar-row" role="row"><div class="bar-label" role="rowheader">Horarios restringidos</div><div class="bar-track" role="cell"><div class="bar grow" style="width:196px" title="Horarios restringidos: 32.4 %"></div><span class="bar-val">32.4</span></div></div>
+          <div class="bar-row" role="row"><div class="bar-label" role="rowheader">Tuvo que ir a un lugar muy lejano</div><div class="bar-track" role="cell"><div class="bar grow" style="width:144px" title="Tuvo que ir a un lugar muy lejano: 23.8 %"></div><span class="bar-val">23.8</span></div></div>
+          <div class="bar-row" role="row"><div class="bar-label" role="rowheader">Le pasaban de una ventanilla a otra</div><div class="bar-track" role="cell"><div class="bar hl grow" style="width:132px" title="Le pasaban de una ventanilla a otra: 21.9 %"></div><span class="bar-val">21.9</span><span class="tag">Info</span></div></div>
+          <div class="bar-row" role="row"><div class="bar-label" role="rowheader">Obtuvo información incorrecta</div><div class="bar-track" role="cell"><div class="bar hl grow" style="width:72px" title="Obtuvo información incorrecta: 11.9 %"></div><span class="bar-val">11.9</span><span class="tag">Info</span></div></div>
+        </div>
+        <div class="callout rise d3">Requisitos que no aparecen, información incorrecta, vueltas de ventanilla en ventanilla: <b>son problemas de información</b>. Y esos sí se resuelven con software.</div>
+      </div>
+    </div>
+    <p class="source">Fuente: INEGI, Encuesta Nacional de Calidad e Impacto Gubernamental (ENCIG) 2025, publicada el 21-may-2026. Población de 18 años y más en áreas urbanas de 100 mil habitantes o más. Gráfica: «Principales resultados», p. 37; 51.7 % y 21.7 %: comunicado de prensa 28/26.</p>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Y no es solo una anécdota: según la ENCIG 2025 del INEGI, 57.7 % de quienes hicieron su último trámite en una oficina de gobierno tuvo algún problema.</p>
+      <p>Fíjense en las barras amarillas: requisitos que no se exhiben, información incorrecta, que te pasen de una ventanilla a otra. Son problemas de información, y eso sí se puede resolver con software.</p>
+    </aside>
+  </section>
+
+  <!-- 4 · LA IDEA -->
+  <section class="slide t-salmon" aria-label="La idea">
+    <p class="eyebrow rise">03 · La idea</p>
+    <h2 class="display l rise d1">Una ventanilla <span class="hlbox">virtual</span>: sin fila,<br>sin horario y con la ley en la mano.</h2>
+    <div class="steps">
+      <div class="card step rise d2">
+        <span class="n">01</span>
+        <h3>Pregunta como hablas</h3>
+        <p>Sin saber el nombre del trámite ni el artículo. Ventanilla traduce tu pregunta a términos jurídicos para buscar mejor.</p>
+        <span class="ex">“Me despidieron sin causa, ¿qué me corresponde?”</span>
+      </div>
+      <div class="card step rise d3">
+        <span class="n">02</span>
+        <h3>Respuesta con fuentes</h3>
+        <p>Cada dato cita la ley o la ficha oficial y enlaza a la página exacta del PDF. Si no está en las fuentes, lo dice.</p>
+        <span class="ex">[1] LFT · Art. 48 → LFT.pdf#page=…</span>
+      </div>
+      <div class="card step rise d4">
+        <span class="n">03</span>
+        <h3>Tu documento, listo</h3>
+        <p>Si lo pides, reúne los datos, tú los revisas y genera el documento para descargar.</p>
+        <span class="ex">Carta poder · Escrito libre ante el SAT · Solicitud de información pública</span>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>La idea: una ventanilla virtual. Abierta siempre, sin fila, y que responde con la fuente oficial.</p>
+      <p>Tres cosas: preguntas en tu lenguaje; te responde citando la ley o la ficha del trámite con enlace a la página exacta; y si lo necesitas, te prepara el documento.</p>
+    </aside>
+  </section>
+
+  <!-- 5 · ASÍ SE VE -->
+  <section class="slide t-cream" aria-label="Así se ve">
+    <p class="eyebrow rise">04 · Así se ve</p>
+    <h2 class="display m rise d1">Una pregunta, una respuesta <em>verificable</em>.</h2>
+    <div class="demo">
+      <div class="card chat-mini chat-big rise d2" style="transform:none; position:relative">
+        <span class="stamp">Ejemplo ilustrativo</span>
+        <div class="chat-bar"><span class="dot"></span>Ventanilla · trámites y leyes de México</div>
+        <div class="chat-body">
+          <div class="bubble user">¿Cuántos días de vacaciones me corresponden por ley?</div>
+          <div class="bubble bot">
+            <div>Desde tu primer año de trabajo te corresponden <b>12 días</b> de vacaciones pagadas, y aumentan 2 días por cada año hasta llegar a 20<span class="ref">1</span>. Además, debes recibir una prima vacacional de al menos <b>25 %</b> sobre el salario de esos días<span class="ref">2</span>.</div>
+            <div class="sources-list">
+              <div><b>[1]</b> Ley Federal del Trabajo · Art. 76 · diputados.gob.mx/…/LFT.pdf#page=…</div>
+              <div><b>[2]</b> Ley Federal del Trabajo · Art. 80 · diputados.gob.mx/…/LFT.pdf#page=…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes-list">
+        <div class="note rise d2"><span class="k">1</span><div><h4>Entiende la pregunta</h4><p>Reescribe tu pregunta coloquial con terminología jurídica antes de buscar.</p></div></div>
+        <div class="note rise d3"><span class="k">2</span><div><h4>Busca en lo oficial</h4><p>~5,900 fragmentos de leyes y fichas de trámite, por artículo y por ficha.</p></div></div>
+        <div class="note rise d3"><span class="k">3</span><div><h4>Cita todo</h4><p>Cada afirmación lleva [n] con enlace a la página exacta del PDF oficial.</p></div></div>
+        <div class="note rise d4"><span class="k">4</span><div><h4>No inventa</h4><p>Si no está en las fuentes, lo dice y te manda al canal oficial. Orienta; no sustituye asesoría legal.</p></div></div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Así se ve una respuesta. Pregunto por mis vacaciones y la respuesta cita la Ley Federal del Trabajo con enlace a la página exacta.</p>
+      <p>El prompt le prohíbe inventar requisitos, plazos o artículos. Si no lo encuentra en las fuentes, lo dice.</p>
+    </aside>
+  </section>
+
+  <!-- 6 · DEMO EN VIVO -->
+  <section class="slide t-sand" aria-label="Demo en vivo" data-live>
+    <div class="live-head">
+      <div>
+        <p class="eyebrow rise">05 · Demo en vivo</p>
+        <h2 class="display m rise d1">Pregúntale <em>ahora</em>.</h2>
+      </div>
+      <a class="btn live-open rise d2" href="../" target="_blank" rel="noopener">Abrir el chat ↗</a>
+    </div>
+    <div class="card live-frame rise d2">
+      <iframe title="Chat de Ventanilla en vivo" data-src="../" allow="microphone"></iframe>
+      <div class="live-fallback">
+        <h3>Aquí va el chat en vivo</h3>
+        <p>Corre en la misma app. Levanta Ventanilla y abre la presentación desde ella:</p>
+        <div class="term"><span class="c-c">$</span> ./scripts/dev.sh<br><span class="c-c">→</span> http://127.0.0.1:8700/presentacion/</div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Ahora en vivo: este es el chat real de la app, dentro de la presentación. Prueben una de las sugerencias o una pregunta del público.</p>
+      <p>Al hacer clic dentro del chat, las flechas escriben en el chat. Para seguir: Esc y luego →, o RePág / AvPág (el control remoto).</p>
+    </aside>
+  </section>
+
+  <!-- 7 · DOCUMENTOS -->
+  <section class="slide t-forest" aria-label="Documentos">
+    <div class="docs">
+      <div>
+        <p class="eyebrow rise">06 · Del consejo al documento</p>
+        <h2 class="display l rise d1">Te arma el papeleo.<br><em>Tú das el visto bueno.</em></h2>
+        <div class="flow rise d2">
+          <div class="flow-step"><span class="dot2">1</span><p>Pides el documento en el chat</p></div>
+          <div class="flow-line"></div>
+          <div class="flow-step"><span class="dot2">2</span><p>El modelo reúne los datos que faltan</p></div>
+          <div class="flow-line"></div>
+          <div class="flow-step key"><span class="dot2">3</span><p><b>Revisas y corriges</b> en una tarjeta</p></div>
+          <div class="flow-line"></div>
+          <div class="flow-step"><span class="dot2">4</span><p>Se genera y lo descargas</p></div>
+        </div>
+        <div class="doc-list rise d3">
+          <span class="chip">Carta poder simple</span>
+          <span class="chip">Escrito libre ante el SAT</span>
+          <span class="chip">Solicitud de información pública</span>
+        </div>
+      </div>
+      <div class="card confirm rise d2" aria-label="Tarjeta de confirmación de ejemplo">
+        <span class="stamp">Datos ficticios</span>
+        <div class="confirm-head"><div class="k">Revisa los datos</div><h3>Carta poder simple</h3></div>
+        <div class="fields">
+          <div class="field"><label>Otorgante</label><div>María Pérez Rangel</div></div>
+          <div class="field"><label>Apoderado</label><div>Juan López Díaz</div></div>
+          <div class="field"><label>Dependencia</label><div>Servicio de Administración Tributaria (SAT)</div></div>
+          <div class="field"><label>Trámite</label><div>Recoger el certificado de e.firma</div></div>
+          <div class="field"><label>Testigos</label><div>Ana Ruiz · Luis Gómez</div></div>
+          <div class="field"><label>Lugar</label><div>Guadalajara, Jalisco</div></div>
+        </div>
+        <div class="confirm-actions"><span class="btn">Generar documento</span><span class="btn ghost">Cancelar</span></div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Ventanilla no solo informa: también te prepara el documento. Le pides una carta poder y te pide los datos que faltan.</p>
+      <p>Lo importante: nada se envía sin que revises y confirmes los datos en esta tarjeta. Es la salvaguarda antes de mandar datos al servicio de documentos.</p>
+    </aside>
+  </section>
+
+  <!-- 8 · BAJO EL CAPÓ -->
+  <section class="slide t-sand" aria-label="Cómo funciona">
+    <p class="eyebrow rise">07 · Bajo el capó</p>
+    <h2 class="display m rise d1">RAG híbrido + un LLM <em>open-weight</em> local.</h2>
+    <div class="pipeline">
+      <div class="card pipe rise d1">
+        <span class="n">01 · REESCRIBE</span>
+        <h3>Entiende</h3>
+        <p>Qwen convierte la pregunta coloquial en terminología jurídica.</p>
+        <div class="tech"><span>Qwen</span><span>sin razonamiento</span></div>
+      </div>
+      <div class="card pipe rise d2">
+        <span class="n">02 · BUSCA</span>
+        <h3>Recupera</h3>
+        <p>Búsqueda léxica y semántica, fusionadas con Reciprocal Rank Fusion.</p>
+        <div class="tech"><span>BM25 · SQLite FTS5</span><span>embeddings</span><span>RRF</span></div>
+      </div>
+      <div class="card pipe rise d3">
+        <span class="n">03 · RESPONDE</span>
+        <h3>Cita</h3>
+        <p>Redacta con citas [n] a los fragmentos y transmite la respuesta en tiempo real.</p>
+        <div class="tech"><span>streaming SSE</span><span>citas a página</span></div>
+      </div>
+      <div class="card pipe rise d4">
+        <span class="n">04 · ACTÚA</span>
+        <h3>Genera</h3>
+        <p>Si pides un documento: tool call, tarjeta de confirmación y servicio externo.</p>
+        <div class="tech"><span>tool calling</span><span>JSON Schema</span><span>HTTP</span></div>
+      </div>
+    </div>
+    <div class="infra rise d4">
+      <span class="box">Navegador</span><span class="arr">⇄</span>
+      <span class="box dark">FastAPI</span><span class="arr">⇄</span>
+      <span class="box">Ollama · Qwen 27B (Mac Studio)</span><span class="arr">+</span>
+      <span class="box">Servicio de documentos</span><span class="arr">·</span>
+      <span class="box">Docker / Coolify</span>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Por dentro es un RAG híbrido en cuatro pasos: reescribe la pregunta, busca con BM25 y embeddings fusionados con RRF, responde con citas y, si pides un documento, hace una tool call.</p>
+      <p>Todo corre con un modelo open-weight, Qwen, en hardware propio vía Ollama.</p>
+    </aside>
+  </section>
+
+  <!-- 9 · IA PARA TODOS -->
+  <section class="slide t-gold" aria-label="IA para todos">
+    <p class="eyebrow rise">08 · El lema de Hacktoberfest 2026</p>
+    <p class="quote-big rise d1">“AI belongs to everyone.”</p>
+    <p class="quote-next rise d2">La información pública, <span>también.</span></p>
+    <div class="pillars">
+      <div class="pillar rise d2"><h4>Modelo open-weight</h4><p>Qwen en hardware propio vía Ollama. También funciona con vLLM, LM Studio o llama.cpp.</p></div>
+      <div class="pillar rise d3"><h4>Solo fuentes oficiales</h4><p>.gob.mx, DOF y Cámara de Diputados. Cada respuesta se puede verificar en el PDF original.</p></div>
+      <div class="pillar rise d4"><h4>Código abierto</h4><p>Licencia MIT. Python, FastAPI, SQLite y un frontend sin dependencias.</p></div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>El lema de este Hacktoberfest es “AI belongs to everyone”. Nosotros agregamos: la información pública también.</p>
+      <p>Por eso: modelo abierto, fuentes oficiales verificables y código MIT.</p>
+    </aside>
+  </section>
+
+  <!-- 10 · V1 EN NÚMEROS -->
+  <section class="slide t-cream" aria-label="La v1 en números">
+    <p class="eyebrow rise">09 · La v1 en números</p>
+    <h2 class="display m rise d1">Un MVP que <em>ya funciona</em>.</h2>
+    <div class="stats">
+      <div class="card stat accent rise d1"><b>10</b><h4>fuentes oficiales</h4><p>Anexo 2 de la RMF 2026 (SAT) + Constitución y 8 leyes federales</p></div>
+      <div class="card stat rise d2"><b>~5.9k</b><h4>fragmentos indexados</h4><p>Por artículo, con su título y capítulo, o por ficha de trámite</p></div>
+      <div class="card stat rise d3"><b>3</b><h4>documentos generables</h4><p>Carta poder, escrito libre ante el SAT y solicitud de información</p></div>
+      <div class="card stat rise d2"><b>50+</b><h4>pruebas automatizadas</h4><p>Corren sin LLM ni red, en segundos</p></div>
+      <div class="card stat rise d3"><b>0</b><h4>dependencias en el frontend</h4><p>HTML, CSS y JavaScript sin frameworks</p></div>
+      <div class="card stat rise d4"><b>~4 min</b><h4>para indexar desde cero</h4><p>Descarga los PDFs oficiales, los parsea y calcula embeddings</p></div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Hoy la v1 indexa 10 fuentes oficiales, casi 6 mil fragmentos, genera 3 documentos y tiene más de 50 pruebas que corren sin LLM ni red.</p>
+    </aside>
+  </section>
+
+  <!-- 11 · SECCIÓN: SOLO LA V1 -->
+  <section class="slide t-ink" aria-label="Esto es solo la v1">
+    <p class="eyebrow rise">10 · Lo que sigue</p>
+    <div class="versions rise d1" aria-hidden="true">
+      <span class="v v1">v1</span><span class="v v2">v2</span><span class="v v3">v3</span><span class="v vn">vN</span>
+    </div>
+    <h2 class="display xl rise d2" style="margin-top:56px">Esto es solo <em>la versión 1</em>.</h2>
+    <p class="lead rise d3" style="max-width:1300px">Ventanilla está hecha para crecer: casi todo se extiende con configuración, sin reescribir el núcleo.</p>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Y esto es solo la versión 1. Lo más importante del diseño es que crece sin tocar el núcleo.</p>
+    </aside>
+  </section>
+
+  <!-- 12 · EXTENSIBLE -->
+  <section class="slide t-cream" aria-label="Extensible por diseño">
+    <p class="eyebrow rise">11 · Extensible por diseño</p>
+    <h2 class="display m rise d1">Cuatro puntos para <em>conectar</em> lo que sigue.</h2>
+    <div class="plugs">
+      <div class="card plug rise d1">
+        <div class="plug-tab"><span>config/sources.yaml</span><span class="tag">YAML</span></div>
+        <div class="plug-body"><h3>Fuentes</h3><p>Una ley, una ficha de trámite o una página de gob.mx es un bloque de YAML. Parsers incluidos: ley, fichas SAT, HTML y genérico.</p><span class="ex">→ CURP, pasaporte, IMSS, INFONAVIT, PROFECO…</span></div>
+      </div>
+      <div class="card plug rise d2">
+        <div class="plug-tab"><span>config/document_services.yaml</span><span class="tag">JSON Schema</span></div>
+        <div class="plug-body"><h3>Documentos</h3><p>Un esquema define a la vez la tool del LLM, la validación y el formulario de confirmación.</p><span class="ex">→ Queja ante PROFECO, renuncia voluntaria…</span></div>
+      </div>
+      <div class="card plug rise d3">
+        <div class="plug-tab"><span>POST /v1/documents</span><span class="tag">Contrato HTTP</span></div>
+        <div class="plug-body"><h3>Servicios</h3><p>Cualquier generador que hable el contrato: respuesta lista, inline, asíncrona o archivo directo.</p><span class="ex">→ El servicio real de una dependencia o de un tercero</span></div>
+      </div>
+      <div class="card plug rise d4">
+        <div class="plug-tab"><span>LLM_BASE_URL · LLM_MODEL</span><span class="tag">API OpenAI</span></div>
+        <div class="plug-body"><h3>Modelos</h3><p>Cualquier servidor compatible con la API de OpenAI. Cambiar de modelo es cambiar una variable.</p><span class="ex">→ Ollama, vLLM, LM Studio, llama.cpp</span></div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Hay cuatro puntos de extensión: fuentes, documentos, servicios y modelos. Los dos primeros son YAML; los otros dos, un contrato HTTP y una variable de entorno.</p>
+    </aside>
+  </section>
+
+  <!-- 13 · CÓDIGO -->
+  <section class="slide t-ink" aria-label="Agregar un trámite">
+    <p class="eyebrow rise">12 · Así de fácil</p>
+    <h2 class="display m rise d1">Un trámite nuevo = <em>un bloque de YAML</em>.</h2>
+    <div class="code-grid">
+      <div class="rise d2">
+        <div class="code">
+          <div class="code-head"><span>config/sources.yaml</span><span>+ nueva fuente</span></div>
+<pre><span class="c-p">- id</span>: curp
+  <span class="c-p">title</span>: <span class="c-s">"Consulta e impresión de la CURP"</span>
+  <span class="c-p">short_title</span>: CURP
+  <span class="c-p">institution</span>: RENAPO
+  <span class="c-p">url</span>: <span class="c-s">https://www.gob.mx/curp/</span>
+  <span class="c-p">format</span>: <span class="c-k">html</span>
+  <span class="c-p">parser</span>: <span class="c-k">html</span></pre>
+        </div>
+        <div class="term"><span class="c-c">$</span> python -m app.rag.ingest --only curp</div>
+        <div class="result">→ el chat ya puede responder y citar sobre la CURP</div>
+      </div>
+      <div class="rise d3">
+        <div class="code">
+          <div class="code-head"><span>config/document_services.yaml</span><span>+ nuevo documento</span></div>
+<pre><span class="c-p">- id</span>: queja_profeco
+  <span class="c-p">title</span>: Queja ante PROFECO
+  <span class="c-p">service</span>: generador
+  <span class="c-p">parameters</span>:
+    <span class="c-p">type</span>: object
+    <span class="c-p">properties</span>:
+      <span class="c-p">consumidor_nombre</span>: {<span class="c-p">type</span>: string}
+      <span class="c-p">proveedor</span>: {<span class="c-p">type</span>: string}
+      <span class="c-p">hechos</span>: {<span class="c-p">type</span>: string}
+      <span class="c-p">peticion</span>: {<span class="c-p">type</span>: string}
+    <span class="c-p">required</span>: [consumidor_nombre, proveedor, hechos, peticion]</pre>
+        </div>
+        <div class="result">→ el LLM ya tiene la tool <b>generar_queja_profeco</b></div>
+      </div>
+    </div>
+    <p class="source" style="bottom:86px">Ejemplos ilustrativos basados en las ideas de CONTRIBUTING.md. Un documento nuevo también necesita su plantilla en el servicio de documentos (mock_doc_service/templates.py).</p>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Agregar una fuente es un bloque de YAML y un comando de ingesta. Agregar un documento es otro bloque con su JSON Schema: el LLM obtiene la tool, la validación y el formulario sin escribir más código.</p>
+    </aside>
+  </section>
+
+  <!-- 14 · ROADMAP -->
+  <section class="slide t-forest" aria-label="Hoja de ruta">
+    <p class="eyebrow rise">13 · Hoja de ruta</p>
+    <h2 class="display m rise d1">De un MVP a la ventanilla <em>de todos</em>.</h2>
+    <div class="road">
+      <div class="card phase now rise d1">
+        <div class="phase-head"><div class="v">v1</div><div class="s">Hoy · listo</div></div>
+        <ul>
+          <li>Chat con citas a la página exacta</li>
+          <li>SAT (Anexo 2 RMF 2026) + 9 textos legales federales</li>
+          <li>3 documentos con tarjeta de confirmación</li>
+          <li>Demo en Docker / Coolify con límites de uso</li>
+        </ul>
+        <div class="pbar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+      </div>
+      <div class="card phase next rise d2">
+        <div class="phase-head"><div class="v">v2</div><div class="s">Siguiente · abierto a PRs</div></div>
+        <ul>
+          <li>Más fuentes: CURP, pasaporte, acta de nacimiento, IMSS, INFONAVIT, PROFECO, leyes estatales</li>
+          <li>Más documentos: queja PROFECO, renuncia voluntaria, constancias</li>
+          <li>Set de evaluación y reranking</li>
+          <li>Accesibilidad, modo oscuro, lenguaje claro</li>
+        </ul>
+        <div class="pbar"><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="card phase later rise d3">
+        <div class="phase-head"><div class="v">v3+</div><div class="s">Visión · ideas</div></div>
+        <ul>
+          <li>Cuentas, autenticación y aviso de privacidad para datos reales</li>
+          <li>Trámites estatales y municipales</li>
+          <li>Más canales: mensajería y voz</li>
+          <li>Acompañar el trámite de principio a fin</li>
+        </ul>
+        <div class="pbar"><i></i><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>La v1 ya está. La v2 son más fuentes y documentos, evaluación y accesibilidad: todo eso está abierto a PRs hoy.</p>
+      <p>La v3 es la visión: datos reales con autenticación, trámites estatales y municipales, y otros canales.</p>
+    </aside>
+  </section>
+
+  <!-- 15 · CONTRIBUYE -->
+  <section class="slide t-cream" aria-label="Contribuye">
+    <div class="contrib">
+      <div>
+        <p class="eyebrow rise">14 · Hacktoberfest</p>
+        <h2 class="display l rise d1">Tu primer PR puede ser <em>un trámite</em>.</h2>
+        <ul class="todo">
+          <li class="rise d1"><i></i><div>Agrega una fuente oficial<small>config/sources.yaml + su prueba</small></div></li>
+          <li class="rise d2"><i></i><div>Agrega una plantilla de documento<small>document_services.yaml + mock_doc_service/templates.py</small></div></li>
+          <li class="rise d2"><i></i><div>Escribe preguntas de evaluación<small>respuesta esperada + fuente correcta</small></div></li>
+          <li class="rise d3"><i></i><div>Mejora la accesibilidad<small>lectores de pantalla, móvil, modo oscuro</small></div></li>
+          <li class="rise d3"><i></i><div>Endurece el despliegue<small>autenticación y límites de uso</small></div></li>
+        </ul>
+        <div class="rules rise d4">
+          <span class="tag">Solo fuentes oficiales</span>
+          <span class="tag">Pruebas para lógica nueva</span>
+          <span class="tag">Nunca subas .env ni data/</span>
+          <span class="tag">Español claro</span>
+        </div>
+      </div>
+      <div class="card qr-card rise d2">
+        <img src="assets/qr.svg" alt="Código QR al repositorio en GitHub" />
+        <div class="url">github.com/archr/<br>hacktoberfest-ventanilla</div>
+        <div class="term"><span class="c-c">$</span> cp .env.example .env<br><span class="c-c">$</span> python -m app.rag.ingest<br><span class="c-c">$</span> ./scripts/dev.sh<br><span class="c-c">$</span> python -m pytest -q</div>
+      </div>
+    </div>
+    <footer class="foot"><span class="brand-mini"><i></i>Ventanilla · v1</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Si quieren contribuir en Hacktoberfest, su primer PR puede ser literalmente un trámite: una fuente nueva en YAML con su prueba.</p>
+      <p>Reglas: solo fuentes oficiales, pruebas para lógica nueva y nunca subir .env ni datos.</p>
+    </aside>
+  </section>
+
+  <!-- 16 · CIERRE -->
+  <section class="slide t-forest" aria-label="Cierre">
+    <div class="closing">
+      <div>
+        <p class="eyebrow rise">Ventanilla · v1</p>
+        <h2 class="display xxl rise d1">Menos dudas.<br><em>Más claridad.</em></h2>
+        <p class="lead rise d2" style="max-width:1100px">Que nadie vuelva a escuchar “pase a la siguiente ventanilla”. La v2 la construimos juntos.</p>
+        <p class="thanks rise d3">¡Gracias!</p>
+      </div>
+      <div class="card qr-small rise d2">
+        <img src="assets/qr.svg" alt="Código QR al repositorio en GitHub" />
+        <span>github.com/archr/<br>hacktoberfest-ventanilla</span>
+      </div>
+    </div>
+    <div class="pixels cover-pixels" data-pixels="44,11" aria-hidden="true"></div>
+    <footer class="foot"><span class="brand-mini"><i></i>Hacktoberfest 2026</span><span class="page"></span></footer>
+    <aside class="notes">
+      <p>Menos dudas, más claridad. Esa es la promesa de Ventanilla. Gracias; el repo está en el QR.</p>
+    </aside>
+  </section>
+
+</main>
+
+<div class="progress" aria-hidden="true"></div>
+<nav class="nav" aria-label="Navegación">
+  <button class="prev" type="button" aria-label="Anterior">←</button>
+  <span class="count"></span>
+  <button class="next" type="button" aria-label="Siguiente">→</button>
+</nav>
+<div class="speaker" aria-live="polite"></div>
+<script src="deck.js"></script>
+</body>
+</html>

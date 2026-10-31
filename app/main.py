@@ -33,6 +33,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("gobchat")
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+PRESENTATION_DIR = Path(__file__).resolve().parent / "presentacion"
 
 SUGGESTIONS = [
     "¿Cómo me inscribo en el RFC por primera vez?",
@@ -108,6 +109,8 @@ app.add_middleware(
     per_minute=get_settings().requests_per_minute,
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Presentación del proyecto; su diapositiva "Demo en vivo" muestra el chat de esta misma app.
+app.mount("/presentacion", StaticFiles(directory=PRESENTATION_DIR, html=True), name="presentacion")
 
 
 class ChatRequest(BaseModel):

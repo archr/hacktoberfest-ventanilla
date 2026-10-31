@@ -27,6 +27,17 @@ def test_generate_validation_and_unknown_type(connector):
         assert client.get("/api/documents/../../etc/passwd").status_code == 404
 
 
+def test_presentation_is_served_next_to_the_chat():
+    with TestClient(app) as client:
+        r = client.get("/presentacion", follow_redirects=False)
+        assert r.status_code in (301, 307, 308) and r.headers["location"].endswith("/presentacion/")
+        page = client.get("/presentacion/")
+        assert page.status_code == 200 and "text/html" in page.headers["content-type"]
+        assert 'data-src="../"' in page.text  # la demo en vivo apunta al chat de esta misma app
+        for asset in ("styles.css", "deck.js", "assets/qr.svg", "assets/fonts/inter-var.woff2"):
+            assert client.get(f"/presentacion/{asset}").status_code == 200, asset
+
+
 def test_config_lists_documents_and_suggestions():
     with TestClient(app) as client:
         cfg = client.get("/api/config").json()

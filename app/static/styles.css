@@ -160,6 +160,7 @@ sup.cite a { display: inline-block; background: var(--highlight); border: 1px so
 .doc-card .info span { color: var(--muted); font-size: 12.5px; }
 .doc-card a.primary { text-decoration: none; }
 .tool-status { color: var(--muted); font-size: 14px; }
+.bubble .content:empty + .tool-status { margin-top: 0; }
 .tool-status.err { color: var(--err); border-color: #f3c7c2; background: #fdf3f2; }
 .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -280,13 +281,6 @@ textarea::placeholder, input::placeholder { color: var(--muted); opacity: 1; }
 }
 
 /* Adjuntar oficio (dictamen técnico) */
-.attach {
-  flex: none; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0;
-  background: var(--panel); border: 2px solid var(--ink); border-radius: 0; color: var(--accent);
-}
-.attach:hover:not(:disabled) { background: var(--surface-subtle); border-color: var(--accent); }
-.attach:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.attach:disabled { opacity: .45; cursor: default; }
 .attach[hidden] { display: none; }
 body.dropping .composer { border: 2px dashed var(--accent); background: var(--surface-subtle); }
 
@@ -310,10 +304,12 @@ body.dropping .composer { border: 2px dashed var(--accent); background: var(--su
 .dictamen-card .equipos th.req::after { content: " *"; color: var(--accent); }
 .dictamen-card .equipos .n { width: 28px; text-align: center; color: var(--muted); }
 .dictamen-card .equipos input { width: 100%; min-width: 100px; padding: 5px 6px; font-size: 16px; }
-.dictamen-card .equipos input[data-name="tipo_equipo"], .dictamen-card .equipos input[data-name="numero_serie"] { min-width: 190px; }
-.dictamen-card .equipos input[data-name="modelo"], .dictamen-card .equipos input[data-name="numero_inventario"] { min-width: 150px; }
+.dictamen-card .equipos input[data-name="tipo_equipo"] { min-width: 280px; }
+.dictamen-card .equipos input[data-name="numero_serie"] { min-width: 240px; }
+.dictamen-card .equipos input[data-name="modelo"] { min-width: 150px; }
+.dictamen-card .equipos input[data-name="numero_inventario"] { min-width: 180px; }
 .dictamen-card .equipos input[data-name="motivo"] { min-width: 170px; }
-.dictamen-card .equipos .remove { padding: 3px 8px; font-size: 12px; border-radius: 0; }
+.dictamen-card .equipos .remove { min-width: 44px; padding: 3px 8px; font-size: 12px; border-radius: 0; }
 .dictamen-card .equipos-empty { padding: 12px; font-size: 13px; color: var(--muted); }
 .dictamen-card .equipos-empty.missing { color: var(--err); background: #fdf3f2; }
 .dictamen-card .add { margin-top: 8px; font-size: 13px; padding: 6px 10px; }

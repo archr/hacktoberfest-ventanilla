@@ -783,7 +783,7 @@ async function generateDictamen(entry, c, ui) {
 }
 
 async function uploadOficio(file) {
-  if (!dictamenCfg || state.busy || !file) return;
+  if (!dictamenCfg || state.busy || voice?.active || !file) return;
   const name = file.name || "oficio";
   $("#welcome").style.display = "none";
   const userEntry = { id: uid(), role: "user", text: `📎 ${name}` };
@@ -1097,6 +1097,9 @@ function init() {
   const input = $("#input");
   const touchInput = () => matchMedia("(pointer: coarse)").matches;
   const autosize = () => {
+    input.placeholder = matchMedia("(max-width: 640px)").matches
+      ? "Escribe…"
+      : (voiceSupported ? "Escribe o dicta…" : "Escribe tu pregunta…");
     input.style.height = "auto";
     const maxHeight = parseFloat(getComputedStyle(input).maxHeight) || 160;
     input.style.height = `${Math.min(input.scrollHeight, maxHeight)}px`;
@@ -1118,7 +1121,6 @@ function init() {
     voiceUnavailableReason = window.isSecureContext
       ? "Este navegador no ofrece dictado por voz. Puedes escribir o usar el micrófono de tu teclado, si lo tiene."
       : "El dictado necesita una conexión HTTPS. En esta página puedes seguir escribiendo.";
-    input.placeholder = "Escribe tu pregunta…";
   }
   syncVoiceControls();
   $("#dictate").addEventListener("click", () => {
@@ -1152,7 +1154,7 @@ function init() {
     send(text);
   });
   $("#attach").addEventListener("click", () => {
-    if (!state.busy) $("#attach-input").click();
+    if (!state.busy && !voice.active) $("#attach-input").click();
   });
   $("#attach-input").addEventListener("change", (e) => {
     const file = e.target.files && e.target.files[0];
@@ -1164,7 +1166,7 @@ function init() {
   let dragDepth = 0;
   const dropOff = () => { dragDepth = 0; document.body.classList.remove("dropping"); };
   window.addEventListener("dragenter", (e) => {
-    if (!dictamenCfg || !hasFiles(e)) return;
+    if (!dictamenCfg || state.busy || voice.active || !hasFiles(e)) return;
     dragDepth += 1;
     document.body.classList.add("dropping");
   });
@@ -1174,7 +1176,10 @@ function init() {
     if (!dragDepth) dropOff();
   });
   window.addEventListener("dragover", (e) => {
-    if (dictamenCfg && hasFiles(e)) e.preventDefault();
+    if (!dictamenCfg || !hasFiles(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = state.busy || voice.active ? "none" : "copy";
+    if (state.busy || voice.active) dropOff();
   });
   window.addEventListener("drop", (e) => {
     if (!dictamenCfg || !hasFiles(e)) return;

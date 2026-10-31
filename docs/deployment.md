@@ -50,7 +50,7 @@ se cargan en memoria. Al cambiar el modelo de embeddings, reconstruye todo el í
   de IP enviadas por clientes. Para varias réplicas hace falta un limitador compartido.
 - Cuerpos de hasta 64 KiB; campos de documentos de hasta 4000 caracteres y 50 saltos de
   línea. Respuestas 413/422 cuando se exceden. La única excepción es la subida de oficios
-  (`/api/dictamen/oficio`, `DICTAMEN_MAX_UPLOAD_MB`), que en la demo está desactivada.
+  (`/api/dictamen/oficio`, `DICTAMEN_MAX_UPLOAD_MB`), disponible cuando se activa el flujo.
 - Descargas con `Cache-Control: private, no-store`. Caducan a las 24 horas; el borrado se
   ejecuta al arrancar y cada hora, y se impide descargar un documento ya caducado.
 - El navegador conserva el historial localmente. El aviso de demo pide datos ficticios.
@@ -107,22 +107,24 @@ Referencia: [SpeechRecognition en MDN](https://developer.mozilla.org/en-US/docs/
 
 ## Dictámenes técnicos
 
-En `compose.yaml` la función queda **apagada** (`DICTAMEN_ENABLED: ${DICTAMEN_ENABLED:-false}`).
+En `compose.yaml` la función queda **apagada por defecto** (`DICTAMEN_ENABLED: ${DICTAMEN_ENABLED:-false}`).
+La imagen incluye el módulo, la plantilla y el catálogo; se activa por despliegue mediante
+`DICTAMEN_ENABLED=true` en Coolify y un nuevo deploy.
 La plantilla lleva el membrete, el nombre y el cargo del Coordinador General de Sistemas e
 Informática de la Fiscalía General del Estado de Oaxaca. Esta app no tiene cuentas, así que una
 demo pública con la función activa permitiría a cualquier visitante generar oficios con apariencia
 oficial. Con la función apagada, el botón 📎 no aparece, `/api/config` devuelve `"dictamen": null`
 y `/api/dictamen/*` responde 404.
 
-Actívala solo en una instalación **interna**: red privada, VPN o Tailscale, o detrás de un proxy
-con autenticación (por ejemplo, OAuth2 Proxy o el *basic auth* de Traefik en Coolify). Hazlo
-además en un despliegue distinto de la demo pública.
+Para uso interno se puede restringir mediante red privada, VPN, Tailscale o un proxy con
+autenticación. En `ventanilla-preview.distrito.dev` se habilita para todos los visitantes,
+con `DEMO_MODE=true`: usa oficios de prueba y datos ficticios. La demo no emite documentos
+oficiales ni verifica la identidad de quien los genera.
 
-1. La imagen debe incluir `app/dictamen/` y `config/dictamen/` (plantilla convertida y
-   `tecnicos.json`). Hoy `.dockerignore` los excluye: agrega `!config/dictamen/` y
-   `!config/dictamen/**` y quita la línea `app/dictamen/`. Si la variable está en `true` y el
-   módulo no viene en la imagen, la app arranca igual y lo registra en el log, pero la función
-   queda apagada.
+1. Despliega una imagen que incluya `app/dictamen/`, `config/dictamen/dictamen.docx` y
+   `config/dictamen/tecnicos.json`. `.dockerignore` permite estos archivos; las imágenes
+   anteriores a este cambio deben reconstruirse. Si el módulo no viene en la imagen,
+   `DICTAMEN_ENABLED=true` no basta: la app registra el fallo y deja la función apagada.
 2. En las variables del servicio `app` (en Coolify: *Environment Variables*) define
    `DICTAMEN_ENABLED=true`. Opcionalmente ajusta `DICTAMEN_MAX_UPLOAD_MB` (15),
    `DICTAMEN_MAX_PAGES` (4), `DICTAMEN_EXTRACT_TIMEOUT_S` (240) y `DICTAMEN_EXTRACT_MODEL`

@@ -7,8 +7,10 @@
 !config/
 !config/sources.yaml
 !config/document_services.yaml
+!config/dictamen/
+config/dictamen/**
+!config/dictamen/dictamen.docx
+!config/dictamen/tecnicos.json
 !scripts/
 !scripts/container-start.sh
 **/__pycache__/
-# Integración de dictámenes en desarrollo en otro hilo; aún no forma parte del MVP.
-app/dictamen/

@@ -243,9 +243,10 @@ las `description` del esquema no orientan al modelo.
   páginas, número de equipos y tiempos, pero no el contenido del oficio.
 - En el chat solo queda una nota «(Adjunto) oficio «x»» / «(Sistema) Detecté N equipos…» para
   que el asistente sepa que hubo un dictamen. Los datos del oficio no se envían al chat.
-- **No hay autenticación.** La plantilla lleva el membrete y la firma de la Fiscalía; por eso
-  la demo pública lo desactiva. Úsalo solo en una instalación interna (ver
-  [Despliegue](docs/deployment.md#dictámenes-técnicos)).
+- **No hay autenticación.** La plantilla lleva el membrete y la firma de la Fiscalía.
+  La vista previa pública habilita el flujo con datos ficticios para demostración; los documentos
+  no son emisiones oficiales. Para una instalación interna, restringe el acceso como indica
+  [Despliegue](docs/deployment.md#dictámenes-técnicos).
 - Latencia medida con `qwen3.8:27b-mlx`: PDF con texto, ~5-7 s; foto o PDF escaneado de una
   página, ~13-22 s. Con varias páginas o con el modelo ocupado (las lecturas van en serie) puede
   llegar a 1 min. Generar el DOCX tarda menos de 0.2 s, incluso con 100 equipos. Revisa siempre

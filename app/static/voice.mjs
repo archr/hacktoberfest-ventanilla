@@ -78,7 +78,7 @@ export class VoiceDictation {
         "not-allowed": "No se permitió el micrófono. Revisa el permiso de este sitio y vuelve a intentarlo.",
         "service-not-allowed": "Este navegador no permite el servicio de dictado. Puedes seguir escribiendo.",
         "audio-capture": "No se encontró un micrófono disponible. Comprueba que esté conectado y libre.",
-        "network": "No se pudo conectar con el servicio de dictado del navegador. Intenta de nuevo.",
+        "network": "El servicio de dictado no está disponible en este navegador o red. Prueba en Chrome o Safari, o usa el dictado del teclado de tu dispositivo.",
         "no-speech": "No se detectó voz. Puedes volver a intentarlo o escribir.",
         "language-not-supported": "El servicio de voz no admite español en este navegador.",
         "aborted": "El dictado se interrumpió. Puedes volver a intentarlo.",

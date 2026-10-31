@@ -1,5 +1,5 @@
 // Ventanilla — frontend del chat (sin dependencias).
-import { VoiceDictation } from "./voice.mjs?v=3";
+import { VoiceDictation } from "./voice.mjs?v=4";
 import { createSilenceMonitor } from "./silence.mjs?v=1";
 
 const $ = (sel) => document.querySelector(sel);

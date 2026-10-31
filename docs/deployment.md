@@ -69,6 +69,14 @@ español (`es-MX`). Requiere HTTPS (o localhost), permiso del micrófono y que e
 ofrezca un servicio de reconocimiento operativo. La compatibilidad se detecta al cargar
 la página; cuando no está disponible, se conserva la escritura y se muestra una explicación.
 
+La presencia de la API no garantiza que su servicio funcione. Brave puede exponerla
+y devolver `network` por la falta de un servicio compatible; es una
+[limitación documentada por Brave](https://github.com/brave/brave-browser/issues/3725).
+En ese caso se indica probar Chrome o Safari, o el dictado del teclado del dispositivo.
+No se reintenta en bucle ni se modifica la conexión del usuario. El error por sí solo
+no permite concluir que falte Internet. No hay un motor de transcripción alternativo
+en el backend.
+
 El proveedor del navegador puede procesar el audio en sus servidores. Ventanilla no
 recibe ni guarda audio: el texto permanece en el borrador hasta que la persona pulsa
 **Enviar**.

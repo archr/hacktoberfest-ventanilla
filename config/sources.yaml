@@ -1,0 +1,88 @@
+# Fuentes oficiales que alimentan el RAG.
+#
+# Campos:
+#   id           identificador único (se usa con --only)
+#   title        nombre completo (se muestra al citar)
+#   short_title  nombre corto para los encabezados de las citas
+#   institution  dependencia emisora
+#   url          URL oficial (PDF o página HTML)
+#   format       pdf | html
+#   parser       ley (por artículo) | sat_fichas (por ficha de trámite) | html | generic
+#   version      opcional; en leyes se detecta "Última reforma DOF dd-mm-aaaa"
+#
+# Para agregar una fuente: añade un bloque y corre `python -m app.rag.ingest --only <id>`.
+
+sources:
+  # --- SAT: fichas de trámites fiscales (quién, dónde, requisitos, pasos) ---
+  - id: sat-anexo2-rmf-2026
+    title: "Anexo 2 de la Resolución Miscelánea Fiscal para 2026 — Trámites fiscales (SAT)"
+    short_title: "Anexo 2 RMF 2026"
+    institution: SAT
+    url: https://www.sat.gob.mx/minisitio/NormatividadRMFyRGCE/documentos2026/rmf/anexos/Anexo-2-RMF-2026_DOF-28122025.pdf
+    format: pdf
+    parser: sat_fichas
+    version: "DOF 28-12-2025"
+
+  # --- Leyes federales (Cámara de Diputados, texto vigente) ---
+  - id: cpeum
+    title: "Constitución Política de los Estados Unidos Mexicanos"
+    short_title: "Constitución"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/CPEUM.pdf
+    parser: ley
+
+  - id: cff
+    title: "Código Fiscal de la Federación"
+    short_title: "CFF"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/CFF.pdf
+    parser: ley
+
+  - id: lisr
+    title: "Ley del Impuesto sobre la Renta"
+    short_title: "LISR"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/LISR.pdf
+    parser: ley
+
+  - id: liva
+    title: "Ley del Impuesto al Valor Agregado"
+    short_title: "LIVA"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/LIVA.pdf
+    parser: ley
+
+  - id: lfdc
+    title: "Ley Federal de los Derechos del Contribuyente"
+    short_title: "LFDC"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/LFDC.pdf
+    parser: ley
+
+  - id: lfpa
+    title: "Ley Federal de Procedimiento Administrativo"
+    short_title: "LFPA"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPA.pdf
+    parser: ley
+
+  - id: lft
+    title: "Ley Federal del Trabajo"
+    short_title: "LFT"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/LFT.pdf
+    parser: ley
+
+  - id: lss
+    title: "Ley del Seguro Social"
+    short_title: "LSS"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/LSS.pdf
+    parser: ley
+
+  - id: lfpc
+    title: "Ley Federal de Protección al Consumidor"
+    short_title: "LFPC"
+    institution: Cámara de Diputados
+    url: https://www.diputados.gob.mx/LeyesBiblio/pdf/LFPC.pdf
+    parser: ley

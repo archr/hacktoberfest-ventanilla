@@ -1,0 +1,99 @@
+# Servicios externos de generación de documentos y los tipos de documento que exponen.
+#
+# Cada documento se convierte en una herramienta (tool) del LLM llamada `generar_<id>`.
+# El LLM solo la usa cuando la persona pide generar ese documento y confirma los datos.
+#
+# Contrato HTTP que el conector espera del servicio (ver README, sección "Contrato"):
+#   POST {base_url}{path}
+#   { "type": "<id>", "data": { ...parámetros... }, "metadata": { "conversation_id": "...", "requested_at": "..." } }
+#   Respuesta:
+#     a) JSON { "document_id", "status": "ready", "download_url", "filename", "mime_type" }
+#        (download_url puede ser relativa a base_url; "content_base64" también se acepta)
+#     b) JSON { "status": "processing", "status_url": "..." }  -> el conector consulta hasta "ready"
+#     c) El archivo directamente (application/pdf, docx, octet-stream…)
+#
+# Variables ${VAR:-default} se leen del entorno (.env).
+
+services:
+  generador:
+    base_url: ${DOC_SERVICE_URL:-http://127.0.0.1:8701}
+    auth:
+      type: bearer            # none | bearer | header
+      token_env: DOC_SERVICE_TOKEN   # si la variable está vacía no se envía Authorization
+      # header_name: X-API-Key      # solo para type: header
+    timeout_s: 60
+
+documents:
+  - id: carta_poder
+    title: Carta poder simple
+    description: >-
+      Carta poder simple para que una persona (apoderado) realice un trámite o recoja documentos en
+      nombre de otra (otorgante) ante una dependencia, por ejemplo el SAT. Lleva la firma de dos testigos.
+    service: generador
+    request: {method: POST, path: /v1/documents}
+    parameters:
+      type: object
+      additionalProperties: false
+      properties:
+        otorgante_nombre: {type: string, description: "Nombre completo de quien otorga el poder"}
+        otorgante_rfc: {type: string, description: "RFC del otorgante (opcional)"}
+        apoderado_nombre: {type: string, description: "Nombre completo de la persona autorizada"}
+        dependencia: {type: string, description: "Dependencia u oficina ante la que se usará, p. ej. 'Servicio de Administración Tributaria (SAT)'"}
+        tramite: {type: string, description: "Trámite o acto específico que se autoriza, p. ej. 'recoger el certificado de e.firma'"}
+        testigo1_nombre: {type: string, description: "Nombre completo del primer testigo"}
+        testigo2_nombre: {type: string, description: "Nombre completo del segundo testigo"}
+        lugar: {type: string, description: "Ciudad y estado donde se firma"}
+        fecha: {type: string, description: "Fecha de firma en formato AAAA-MM-DD (si no se indica, hoy)"}
+      required: [otorgante_nombre, apoderado_nombre, dependencia, tramite, testigo1_nombre, testigo2_nombre, lugar]
+
+  - id: escrito_libre_sat
+    title: Escrito libre ante el SAT
+    description: >-
+      Escrito libre con los requisitos de los artículos 18 y 18-A del Código Fiscal de la Federación para
+      presentar una solicitud, aclaración o promoción ante el SAT cuando no existe un formato oficial.
+    service: generador
+    request: {method: POST, path: /v1/documents}
+    parameters:
+      type: object
+      additionalProperties: false
+      properties:
+        nombre: {type: string, description: "Nombre completo o razón social del contribuyente"}
+        rfc: {type: string, description: "RFC del contribuyente"}
+        domicilio_fiscal: {type: string, description: "Domicilio fiscal manifestado en el RFC"}
+        correo_electronico: {type: string, description: "Correo electrónico para recibir notificaciones"}
+        autoridad: {type: string, description: "Autoridad a la que se dirige, p. ej. 'Administración Desconcentrada de Servicios al Contribuyente de Jalisco 1'"}
+        asunto: {type: string, description: "Asunto breve del escrito"}
+        hechos: {type: string, description: "Antecedentes y razones que motivan la petición"}
+        peticion: {type: string, description: "Lo que se solicita de manera concreta"}
+        representante_legal: {type: string, description: "Nombre del representante legal, si aplica"}
+        documentos_anexos:
+          type: array
+          items: {type: string}
+          description: "Lista de documentos que se anexan (opcional)"
+        lugar: {type: string, description: "Ciudad y estado"}
+        fecha: {type: string, description: "Fecha en formato AAAA-MM-DD (si no se indica, hoy)"}
+      required: [nombre, rfc, domicilio_fiscal, correo_electronico, autoridad, asunto, hechos, peticion, lugar]
+
+  - id: solicitud_acceso_informacion
+    title: Solicitud de acceso a la información pública
+    description: >-
+      Solicitud de acceso a información pública dirigida a una dependencia o entidad (sujeto obligado),
+      conforme a la legislación de transparencia. Puede presentarse sin nombre o con seudónimo.
+    service: generador
+    request: {method: POST, path: /v1/documents}
+    parameters:
+      type: object
+      additionalProperties: false
+      properties:
+        sujeto_obligado: {type: string, description: "Dependencia o entidad a la que se pide la información"}
+        descripcion_informacion: {type: string, description: "Descripción clara y precisa de la información solicitada"}
+        modalidad_entrega:
+          type: string
+          enum: ["Electrónica", "Copia simple", "Copia certificada", "Consulta directa"]
+          description: "Cómo se desea recibir la información"
+        medio_notificacion: {type: string, description: "Correo electrónico o domicilio para recibir notificaciones"}
+        solicitante_nombre: {type: string, description: "Nombre o seudónimo del solicitante (opcional)"}
+        datos_adicionales: {type: string, description: "Datos que faciliten la búsqueda (opcional)"}
+        lugar: {type: string, description: "Ciudad y estado (opcional)"}
+        fecha: {type: string, description: "Fecha en formato AAAA-MM-DD (si no se indica, hoy)"}
+      required: [sujeto_obligado, descripcion_informacion, modalidad_entrega, medio_notificacion]

@@ -1,0 +1,10 @@
+[project]
+name = "gobchat"
+version = "0.1.0"
+description = "MVP: chat ciudadano para trámites y leyes de México con Qwen (Ollama) + RAG + generación de documentos"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ventanilla · Trámites y leyes de México</title>
+  <link rel="stylesheet" href="/static/styles.css?v=3" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%239f2241'/><text x='16' y='22' font-size='17' text-anchor='middle' fill='white' font-family='Georgia'>V</text></svg>" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">V</div>
+      <div>
+        <h1>Ventanilla</h1>
+        <p>Orientación sobre trámites y leyes de México</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span id="status" class="status" title="Estado del sistema">Conectando…</span>
+      <button id="new-chat" class="ghost" type="button">Nueva conversación</button>
+    </div>
+  </header>
+
+  <main id="chat" class="chat" aria-live="polite">
+    <section id="welcome" class="welcome">
+      <h2>¿En qué trámite o duda legal te ayudo?</h2>
+      <p class="lead">Pregunta en tus palabras. Respondo con base en fuentes oficiales (fichas de trámites del SAT y leyes federales) y te digo de dónde sale cada dato.</p>
+      <div id="suggestions" class="suggestions"></div>
+      <div class="capabilities">
+        <div>
+          <h3>También puedo generar</h3>
+          <ul id="doc-types"></ul>
+        </div>
+        <div>
+          <h3>Fuentes consultadas</h3>
+          <ul id="source-list"><li class="muted">Cargando…</li></ul>
+        </div>
+      </div>
+    </section>
+    <div id="messages" class="messages"></div>
+  </main>
+
+  <footer class="composer-wrap">
+    <form id="composer" class="composer" autocomplete="off">
+      <textarea id="input" rows="1" placeholder="Escribe tu pregunta, por ejemplo: ¿cómo saco mi constancia de situación fiscal?" aria-label="Mensaje"></textarea>
+      <button id="send" type="submit" class="primary" aria-label="Enviar">Enviar</button>
+    </form>
+    <p class="disclaimer">Información orientativa generada por IA; no sustituye asesoría legal. Verifica siempre en el portal oficial de la dependencia.</p>
+  </footer>
+
+  <script src="/static/app.js?v=3" type="module"></script>
+</body>
+</html>

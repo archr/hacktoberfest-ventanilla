@@ -7,6 +7,7 @@ const $$ = (sel) => document.querySelectorAll(sel);
 const STORE_KEY = "ventanilla.conversation.v1";
 let voice;
 let voiceSupported = false;
+let voiceUnavailableReason = "";
 let voicePhase = "idle";
 
 function syncVoiceControls() {
@@ -16,7 +17,7 @@ function syncVoiceControls() {
   $("#dictate").disabled = !voiceSupported || state.busy || voicePhase === "stopping";
   $("#dictate").classList.toggle("listening", active);
   $("#dictate").setAttribute("aria-pressed", String(active));
-  const label = active ? (voicePhase === "starting" ? "Cancelar dictado" : "Terminar dictado") : "Dictar mensaje por voz";
+  const label = active ? (voicePhase === "starting" ? "Cancelar dictado" : "Terminar dictado") : (voiceUnavailableReason || "Dictar mensaje por voz");
   $("#dictate").setAttribute("aria-label", label);
   $("#dictate").title = label;
   $("#voice-cancel").hidden = !active;
@@ -603,8 +604,7 @@ function init() {
     },
   });
   if (!voiceSupported) {
-    $("#voice-help-title").textContent = "Dictado no disponible en este navegador";
-    $("#voice-privacy").textContent = window.isSecureContext
+    voiceUnavailableReason = window.isSecureContext
       ? "Este navegador no ofrece dictado por voz. Puedes escribir o usar el micrófono de tu teclado, si lo tiene."
       : "El dictado necesita una conexión HTTPS. En esta página puedes seguir escribiendo.";
     input.placeholder = "Escribe tu pregunta…";

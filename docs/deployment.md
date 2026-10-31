@@ -71,7 +71,7 @@ la página; cuando no está disponible, se conserva la escritura y se muestra un
 
 El proveedor del navegador puede procesar el audio en sus servidores. Ventanilla no
 recibe ni guarda audio: el texto permanece en el borrador hasta que la persona pulsa
-**Enviar**. Esta información está accesible en «Sobre el dictado por voz».
+**Enviar**.
 
 - Pulsar el micrófono inicia la escucha; pulsarlo de nuevo termina y permite revisar.
 - «Cancelar» restaura el borrador anterior. Los resultados tardíos se descartan.

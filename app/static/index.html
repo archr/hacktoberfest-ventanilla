@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f9fa" />
   <title>Ventanilla · Trámites y leyes de México</title>
   <link rel="preload" href="/static/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="/static/styles.css?v=9" />
+  <link rel="stylesheet" href="/static/styles.css?v=10" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%235ba9b5'/><path d='M9 9l7 15 7-15' fill='none' stroke='%2314343b' stroke-width='3' stroke-linejoin='round'/></svg>" />
 </head>
 <body>
@@ -70,20 +70,15 @@
       <button id="voice-cancel" type="button" class="ghost" hidden>Cancelar</button>
     </div>
     <form id="composer" class="composer" autocomplete="off">
-      <button id="dictate" type="button" class="voice-button" aria-label="Dictar mensaje por voz" aria-pressed="false" aria-describedby="voice-privacy" title="Dictar por voz">
+      <button id="dictate" type="button" class="voice-button" aria-label="Dictar mensaje por voz" aria-pressed="false" title="Dictar por voz">
         <svg class="microphone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>
         <svg class="voice-stop-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
       </button>
       <textarea id="input" rows="1" placeholder="Escribe o dicta…" aria-label="Mensaje" enterkeyhint="enter"></textarea>
       <button id="send" type="submit" class="primary" aria-label="Enviar">Enviar</button>
     </form>
-    <details id="voice-help" class="voice-help">
-      <summary id="voice-help-title">Sobre el dictado por voz</summary>
-      <p id="voice-privacy">Tu navegador puede enviar el audio a su proveedor de voz. Ventanilla recibe solo el texto cuando pulsas Enviar. El dictado se detiene tras 3 segundos de silencio si el navegador permite detectarlo; si no, pulsa el micrófono para terminar. Cada dictado dura como máximo un minuto.</p>
-    </details>
-    <p class="disclaimer">Información orientativa generada por IA; no sustituye asesoría legal. Verifica siempre en el portal oficial de la dependencia.</p>
   </footer>
 
-  <script src="/static/app.js?v=9" type="module"></script>
+  <script src="/static/app.js?v=10" type="module"></script>
 </body>
 </html>

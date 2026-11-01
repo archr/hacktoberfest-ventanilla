@@ -8,13 +8,16 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import uuid
 from contextlib import asynccontextmanager, suppress
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -27,7 +30,7 @@ from .limits import RequestLimits, validate_document_data
 from .rag.retriever import Retriever
 from .rag.rewrite import QueryRewriter
 from .rag.store import IndexStore
-from .settings import get_settings
+from .settings import Settings, get_settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -41,6 +44,32 @@ SUGGESTIONS = [
     "¿Cuántos días de vacaciones me corresponden por ley?",
     "Quiero que me generes una carta poder para que alguien recoja mi e.firma",
 ]
+
+# Dictámenes técnicos (app/dictamen/): oficio -> extracción con Qwen -> tarjeta -> DOCX
+DICTAMEN_ACCEPT = ".pdf,.docx,.jpg,.jpeg,.png"
+DICTAMEN_TYPE = "dictamen_tecnico"
+DICTAMEN_TITLE = "Dictamen técnico"
+DICTAMEN_MAX_TEXT = 500
+UPLOAD_OVERHEAD = 64 * 1024  # encabezados multipart y conversation_id
+_XML_INVALID = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]")  # inválidos en XML 1.0
+
+
+def _load_dictamen(s: Settings) -> bool:
+    """Los módulos se importan solo si la función está activa: la imagen de la demo pública
+    puede no incluir app/dictamen/."""
+    if not s.dictamen_enabled:
+        return False
+    try:
+        from .dictamen import extract, generate, schema, tecnicos  # noqa: F401
+    except ImportError:
+        log.exception("DICTAMEN_ENABLED=true pero app/dictamen no está completo; se desactivan los dictámenes")
+        return False
+    if not s.dictamen_template_path.exists():
+        log.error(
+            "Falta la plantilla del dictamen (%s). Genérala con: python scripts/convert_dictamen_template.py",
+            s.dictamen_template_path,
+        )
+    return True
 
 
 @asynccontextmanager
@@ -60,6 +89,19 @@ async def lifespan(app: FastAPI):
         reasoning_effort=s.llm_reasoning_effort,
         timeout_s=s.llm_timeout_s,
     )
+    app.state.dictamen_enabled = _load_dictamen(s)
+    app.state.dictamen_extractor = None
+    if app.state.dictamen_enabled:
+        # OficioExtractor hace las llamadas a Qwen de una en una (el servidor local atiende en serie).
+        from .dictamen.extract import OficioExtractor
+
+        app.state.dictamen_extractor = OficioExtractor(
+            s.llm_base_url,
+            s.dictamen_model,
+            api_key=s.llm_api_key,
+            timeout_s=s.dictamen_extract_timeout_s,
+            max_pages=s.dictamen_max_pages,
+        )
     store = IndexStore(s.index_path)
     embedder = OpenAICompatibleEmbedder(
         s.effective_embed_base_url, s.embed_model, api_key=s.llm_api_key, query_instruction=s.embed_query_instruction
@@ -98,15 +140,26 @@ async def lifespan(app: FastAPI):
         with suppress(asyncio.CancelledError):
             await cleanup
         await llm.aclose()
+        aclose = getattr(app.state.dictamen_extractor, "aclose", None)
+        if aclose is not None:
+            await aclose()
         store.close()
 
 
 app = FastAPI(title="Ventanilla — chat de trámites y leyes (MVP)", version="0.1.0", lifespan=lifespan)
+_settings = get_settings()
 app.add_middleware(
     RequestLimits,
-    max_bytes=get_settings().max_request_bytes,
-    concurrent=get_settings().max_concurrent_requests,
-    per_minute=get_settings().requests_per_minute,
+    max_bytes=_settings.max_request_bytes,
+    concurrent=_settings.max_concurrent_requests,
+    per_minute=_settings.requests_per_minute,
+    # La subida del oficio tiene su propio tope; el resto de los POST sigue en max_request_bytes.
+    route_limits={
+        "/api/dictamen/oficio": (
+            _settings.dictamen_max_upload_bytes + UPLOAD_OVERHEAD,
+            f"El archivo supera el máximo de {_settings.dictamen_max_upload_mb:g} MB.",
+        ),
+    },
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # Presentación del proyecto; su diapositiva "Demo en vivo" muestra el chat de esta misma app.
@@ -134,6 +187,7 @@ def config(request: Request) -> dict:
         "index": st.store.stats(),
         "demo": st.settings.demo_mode,
         "document_retention_hours": st.settings.document_retention_hours,
+        "dictamen": _dictamen_config(st) if getattr(st, "dictamen_enabled", False) else None,
     }
 
 
@@ -166,6 +220,10 @@ async def health(request: Request) -> dict:
         "index": st.store.stats(),
         "vectors": st.retriever.has_vectors,
         "documents": [d["id"] for d in st.registry.summary()],
+        "dictamen": {
+            "enabled": bool(getattr(st, "dictamen_enabled", False)),
+            "template": st.settings.dictamen_template_path.exists(),
+        },
     }
 
 
@@ -233,3 +291,248 @@ def download(doc_id: str, request: Request) -> FileResponse:
 
 def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+# ---------- dictámenes técnicos ----------
+def _dictamen_state(request: Request):
+    st = request.app.state
+    if not getattr(st, "dictamen_enabled", False):
+        raise HTTPException(status_code=404, detail="Los dictámenes no están habilitados en esta instalación")
+    return st
+
+
+def _tecnicos(s: Settings) -> list[dict]:
+    from .dictamen.tecnicos import cargar_tecnicos
+
+    try:
+        return list(cargar_tecnicos(s.dictamen_tecnicos_path) or [])
+    except (OSError, ValueError) as exc:
+        log.warning("No se pudo leer el catálogo de técnicos: %s", exc)
+        return []
+
+
+def _dictamen_config(st) -> dict:
+    from .dictamen.schema import MAX_EQUIPOS, field_spec
+
+    s = st.settings
+    return {
+        "enabled": True,
+        "fields": field_spec(),
+        "tecnicos": [
+            {"nombre": str(t.get("nombre") or ""), "iniciales": str(t.get("iniciales") or "")}
+            for t in _tecnicos(s)
+            if isinstance(t, dict)
+        ],
+        "max_upload_mb": s.dictamen_max_upload_mb,
+        "max_equipos": MAX_EQUIPOS,
+        "accept": DICTAMEN_ACCEPT,
+    }
+
+
+@app.get("/api/dictamen/config")
+def dictamen_config(request: Request) -> dict:
+    return _dictamen_config(_dictamen_state(request))
+
+
+def _display_name(name: str | None) -> str:
+    base = (name or "").replace("\\", "/").rsplit("/", 1)[-1]
+    base = "".join(ch for ch in base if ch.isprintable()).strip()
+    return base[:120] or "oficio"
+
+
+def _draft_response(schema, message: str, filename: str) -> dict:
+    draft = schema.empty_draft()
+    return {"message": message, "filename": filename, **draft, "faltantes": schema.faltantes(draft["data"], draft["own"])}
+
+
+@app.post("/api/dictamen/oficio")
+async def dictamen_oficio(
+    request: Request,
+    file: UploadFile = File(...),
+    conversation_id: str | None = Form(default=None, max_length=64),
+):
+    """Lee un oficio (PDF, DOCX o foto) con el LLM y devuelve los datos para la tarjeta."""
+    st = _dictamen_state(request)
+    from .dictamen import extract, schema
+
+    s: Settings = st.settings
+    limit = s.dictamen_max_upload_bytes
+    content = await file.read(limit + 1)
+    filename = _display_name(file.filename)
+    if len(content) > limit:
+        return JSONResponse(status_code=413, content={"message": f"El archivo supera el máximo de {s.dictamen_max_upload_mb:g} MB."})
+    if not content:
+        return JSONResponse(status_code=415, content={"message": "El archivo está vacío."})
+    if extract.sniff_mime(content, filename) is None:
+        return JSONResponse(
+            status_code=415,
+            content={"message": "Formato no reconocido. Adjunta el oficio en PDF, Word (.docx) o foto JPG/PNG."},
+        )
+    try:
+        result = await st.dictamen_extractor.extract(content, filename) or {}
+        data = schema.normalize_extraction(result.get("data"))
+    except extract.ExtractionError as exc:
+        log.warning("No se pudo extraer el oficio: %s", exc)
+        return JSONResponse(status_code=502, content=_draft_response(schema, str(exc), filename))
+    except Exception:  # noqa: BLE001
+        log.exception("Error inesperado al leer el oficio")
+        return JSONResponse(
+            status_code=502,
+            content=_draft_response(schema, "Ocurrió un error inesperado al leer el oficio.", filename),
+        )
+    own = schema.empty_draft()["own"]
+    return {
+        "filename": filename,
+        "data": data,
+        "own": own,
+        "faltantes": schema.faltantes(data, own),
+        "mode": result.get("mode"),
+        "pages": result.get("pages"),
+        "total_pages": result.get("total_pages", result.get("pages")),
+        "elapsed_s": result.get("elapsed_s"),
+    }
+
+
+class DictamenRequest(BaseModel):
+    data: dict[str, Any] = Field(default_factory=dict)
+    own: dict[str, Any] = Field(default_factory=dict)
+    conversation_id: str | None = Field(default=None, max_length=64)
+
+
+class _InputErrors(ValueError):
+    def __init__(self, errors: list[str]) -> None:
+        super().__init__("; ".join(errors))
+        self.errors = errors
+
+
+def _dictamen_input(raw_data: dict, raw_own: dict, schema) -> tuple[dict, dict]:
+    """Lista blanca de campos, tipos y longitudes; nunca se aceptan claves desconocidas."""
+    errors: list[str] = []
+
+    def text(value, label):
+        if value is None:
+            return None
+        if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+            errors.append(f"{label}: debe ser texto")
+            return None
+        value = str(value)
+        if len(value) > DICTAMEN_MAX_TEXT:
+            errors.append(f"{label}: admite hasta {DICTAMEN_MAX_TEXT} caracteres")
+            return None
+        return value
+
+    data: dict[str, Any] = {f["name"]: text(raw_data.get(f["name"]), f["label"]) for f in schema.GENERAL_FIELDS}
+    equipos = raw_data.get("equipos")
+    if equipos is None:
+        equipos = []
+    if not isinstance(equipos, list):
+        errors.append("Equipos: debe ser una lista")
+        equipos = []
+    elif len(equipos) > schema.MAX_EQUIPOS:
+        errors.append(f"Se admiten hasta {schema.MAX_EQUIPOS} equipos por dictamen")
+        equipos = []
+    data["equipos"] = []
+    for i, eq in enumerate(equipos, 1):
+        if not isinstance(eq, dict):
+            errors.append(f"Equipo {i}: formato inválido")
+            continue
+        data["equipos"].append(
+            {f["name"]: text(eq.get(f["name"]), f"Equipo {i} · {f['label']}") for f in schema.EQUIPO_FIELDS}
+        )
+    own = {}
+    for f in schema.OWN_FIELDS:
+        value = text(raw_own.get(f["name"]), f["label"])
+        value = " ".join(_XML_INVALID.sub("", value).split()) if value else ""
+        own[f["name"]] = value or None
+    if errors:
+        raise _InputErrors(errors)
+    return schema.normalize_extraction(data), own
+
+
+def _faltantes_text(names: list[str], schema) -> str:
+    labels = {f["name"]: f["label"] for f in [*schema.GENERAL_FIELDS, *schema.OWN_FIELDS]}
+    eq_labels = {f["name"]: f["label"] for f in schema.EQUIPO_FIELDS}
+    out = []
+    for name in names:
+        m = re.fullmatch(r"equipo_(\d+)_(.+)", name)
+        if name == "equipos":
+            out.append("al menos un equipo")
+        elif m:
+            out.append(f"equipo {m.group(1)}: {eq_labels.get(m.group(2), m.group(2))}")
+        elif name == "dictamen_inicial":
+            out.append(f"{labels.get(name, name)} (solo números)")
+        else:
+            out.append(labels.get(name, name))
+    shown = ", ".join(out[:8]) + (f" y {len(out) - 8} más" if len(out) > 8 else "")
+    return f"Faltan datos: {shown}."
+
+
+def _safe_numero(numero: str) -> str:
+    return re.sub(r"[^A-Za-z0-9.-]+", "_", numero.upper()).strip("._-")[:60] or "sin_numero"
+
+
+@app.post("/api/dictamen/generar")
+async def dictamen_generar(req: DictamenRequest, request: Request):
+    """Genera el DOCX del dictamen con los datos que la persona revisó en la tarjeta."""
+    st = _dictamen_state(request)
+    from .dictamen import extract, generate, schema, tecnicos
+
+    s: Settings = st.settings
+    try:
+        data, own = _dictamen_input(req.data, req.own, schema)
+    except _InputErrors as exc:
+        return JSONResponse(status_code=422, content={"message": "Revisa los datos marcados.", "errors": exc.errors})
+
+    if own.get("iniciales"):
+        resolved = tecnicos.resolver_iniciales(own["iniciales"], _tecnicos(s))
+        if "error" in resolved:
+            return JSONResponse(
+                status_code=422, content={"message": resolved["error"], "errors": [resolved["error"]], "field": "iniciales"}
+            )
+        own["iniciales"] = resolved["valor"]
+
+    missing = schema.faltantes(data, own)
+    if missing:
+        return JSONResponse(status_code=422, content={"message": _faltantes_text(missing, schema), "faltantes": missing})
+
+    # El dictamen lleva la fecha de Oaxaca (America/Mexico_City), no la del servidor.
+    today = datetime.now(ZoneInfo(s.timezone)).date()
+    try:
+        context = generate.build_context(data, own, today)
+    except generate.DictamenError as exc:
+        return JSONResponse(
+            status_code=422,
+            content={"message": str(exc), "errors": [str(exc)], "faltantes": list(getattr(exc, "faltantes", []))},
+        )
+    if not s.dictamen_template_path.exists():
+        log.error("Falta la plantilla del dictamen: %s", s.dictamen_template_path)
+        return JSONResponse(
+            status_code=503,
+            content={"message": "Falta la plantilla del dictamen en el servidor. Avisa a la persona administradora."},
+        )
+    plantilla_error = getattr(generate, "PlantillaError", ())
+    try:
+        content = await asyncio.to_thread(generate.render_dictamen, data, own, s.dictamen_template_path, today)
+        filename = f"dictamen_{_safe_numero(own['numero_oficio'])}_{today.isoformat()}.docx"
+        doc = st.connector.store_file(DICTAMEN_TYPE, DICTAMEN_TITLE, content, extract.DOCX_MIME, filename)
+    except generate.DictamenError as exc:
+        return JSONResponse(status_code=422, content={"message": str(exc), "errors": [str(exc)]})
+    except plantilla_error:
+        log.exception("La plantilla del dictamen falló")
+        return JSONResponse(
+            status_code=500,
+            content={"message": "La plantilla del dictamen tiene un problema en el servidor. Avisa a la persona administradora."},
+        )
+    except Exception:  # noqa: BLE001
+        log.exception("No se pudo generar el dictamen")
+        return JSONResponse(status_code=500, content={"message": "No se pudo generar el dictamen por un error interno."})
+
+    equipos = context["equipos"]
+    log.info("Dictamen generado: %d equipo(s)", len(equipos))
+    return {
+        **document_payload(doc),
+        "iniciales": own["iniciales"],
+        # como quedan impresos (con ceros a la izquierda si la persona los escribió)
+        "numeros": [equipos[0]["num_dictamen"], equipos[-1]["num_dictamen"]],
+    }
+

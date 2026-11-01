@@ -1,0 +1,110 @@
+{
+  "A": {
+    "oficio_recibido": "FGEO/DA/0532/2026",
+    "fecha_oficio_recibido": "20 DE AGOSTO DEL 2026",
+    "cargo_remitente": "DIRECTORA ADMINISTRATIVA",
+    "nombre_remitente": "MTRA. LAURA ISABEL MENDOZA CRUZ",
+    "equipos": [
+      {
+        "tipo_equipo": "COMPUTADORA DE ESCRITORIO",
+        "marca": "HP",
+        "modelo": "PRODESK 400 G7",
+        "numero_serie": "MXL1234ABC",
+        "numero_inventario": "FGEO-CPU-004512"
+      },
+      {
+        "tipo_equipo": "IMPRESORA MULTIFUNCIONAL",
+        "marca": "EPSON",
+        "modelo": "L3250",
+        "numero_serie": "X8HK012345",
+        "numero_inventario": "FGEO-IMP-001877"
+      },
+      {
+        "tipo_equipo": "MONITOR",
+        "marca": "DELL",
+        "modelo": "P2219H",
+        "numero_serie": "CN0KW3G1QDC009A1B2LL",
+        "numero_inventario": null
+      }
+    ]
+  },
+  "B": {
+    "oficio_recibido": "FGEO/VRC/1187/2026",
+    "fecha_oficio_recibido": "03 DE SEPTIEMBRE DEL 2026",
+    "cargo_remitente": "VICEFISCAL REGIONAL DE LA COSTA",
+    "nombre_remitente": "LIC. SOFÍA GUADALUPE HERNÁNDEZ VÁSQUEZ",
+    "equipos": [
+      {
+        "tipo_equipo": "LAPTOP",
+        "marca": "LENOVO",
+        "modelo": "THINKPAD E14 GEN 2",
+        "numero_serie": "PF2ABC12",
+        "numero_inventario": "FGEO-LAP-000781"
+      },
+      {
+        "tipo_equipo": "NO BREAK",
+        "marca": "CDP",
+        "modelo": "R-UPR1008",
+        "numero_serie": "2104A0335117",
+        "numero_inventario": null
+      },
+      {
+        "tipo_equipo": "MONITOR",
+        "marca": "HP",
+        "modelo": "V19",
+        "numero_serie": "1CR0420XYZ",
+        "numero_inventario": "FGEO-MON-002210"
+      },
+      {
+        "tipo_equipo": "TECLADO",
+        "marca": "HP",
+        "modelo": "KU-1156",
+        "numero_serie": "BDMHE0B7Y8K9QZ",
+        "numero_inventario": null
+      }
+    ]
+  },
+  "C": {
+    "oficio_recibido": "FGEO/DRM/2045/2026",
+    "fecha_oficio_recibido": "14 DE OCTUBRE DEL 2026",
+    "cargo_remitente": "DIRECTOR DE RECURSOS MATERIALES",
+    "nombre_remitente": "ING. ROBERTO CARLOS JIMÉNEZ ORTIZ",
+    "equipos": [
+      {
+        "tipo_equipo": "COMPUTADORA PORTÁTIL",
+        "marca": "DELL",
+        "modelo": "LATITUDE 3420",
+        "numero_serie": "7HQ2KL3",
+        "numero_inventario": "FGEO-LAP-001102"
+      },
+      {
+        "tipo_equipo": "IMPRESORA LÁSER",
+        "marca": "BROTHER",
+        "modelo": "HL-L2350DW",
+        "numero_serie": "U64021H0N123456",
+        "numero_inventario": "FGEO-IMP-000398"
+      },
+      {
+        "tipo_equipo": "SWITCH",
+        "marca": "TP-LINK",
+        "modelo": "TL-SG1016D",
+        "numero_serie": "2219310008841",
+        "numero_inventario": null
+      },
+      {
+        "tipo_equipo": "ESCÁNER",
+        "marca": "EPSON",
+        "modelo": "DS-530 II",
+        "numero_serie": "X5RG004417",
+        "numero_inventario": "FGEO-ESC-000057"
+      },
+      {
+        "tipo_equipo": "COMPUTADORA DE ESCRITORIO",
+        "marca": "LENOVO",
+        "modelo": "THINKCENTRE M70S",
+        "numero_serie": "MJ0GQ8B1",
+        "numero_inventario": "FGEO-CPU-006630"
+      }
+    ]
+  }
+}

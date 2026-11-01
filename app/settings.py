@@ -57,15 +57,35 @@ class Settings(BaseSettings):
     document_retention_hours: float = 24
     demo_mode: bool = False
 
-    @field_validator("llm_reasoning_effort", "embed_base_url", mode="before")
+    # Dictámenes técnicos (oficio PDF/DOCX/foto -> datos con el LLM -> DOCX con la plantilla)
+    dictamen_enabled: bool = True
+    dictamen_template_path: Path = BASE_DIR / "config" / "dictamen" / "dictamen.docx"
+    dictamen_tecnicos_path: Path = BASE_DIR / "config" / "dictamen" / "tecnicos.json"
+    dictamen_max_upload_mb: float = 15
+    dictamen_max_pages: int = 4
+    dictamen_extract_model: str | None = None  # vacío -> llm_model
+    dictamen_extract_timeout_s: float = 240
+
+    @field_validator("llm_reasoning_effort", "embed_base_url", "dictamen_extract_model", mode="before")
     @classmethod
     def _empty_to_none(cls, v):
         return v or None
 
-    @field_validator("data_dir", "sources_file", "documents_file", mode="after")
+    @field_validator(
+        "data_dir", "sources_file", "documents_file", "dictamen_template_path", "dictamen_tecnicos_path",
+        mode="after",
+    )
     @classmethod
     def _resolve(cls, v: Path) -> Path:
         return v if v.is_absolute() else (BASE_DIR / v)
+
+    @property
+    def dictamen_model(self) -> str:
+        return self.dictamen_extract_model or self.llm_model
+
+    @property
+    def dictamen_max_upload_bytes(self) -> int:
+        return int(self.dictamen_max_upload_mb * 1024 * 1024)
 
     @property
     def effective_embed_base_url(self) -> str:

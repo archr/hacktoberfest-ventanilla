@@ -167,16 +167,24 @@ class DocumentConnector:
         return content
 
     def _store(self, doc: DocumentType, content: bytes, mime: str, filename: str | None) -> GeneratedDocument:
+        return self.store_file(doc.id, doc.title, content, mime, filename)
+
+    def store_file(
+        self, type_id: str, title: str, content: bytes, mime: str, filename: str | None = None
+    ) -> GeneratedDocument:
+        """Guarda un archivo generado dentro de la app (p. ej. un dictamen hecho con docxtpl)
+        para descargarlo desde /api/documents/{id}, con la misma retención que el resto."""
+        self._check_size(content)
         doc_id = uuid.uuid4().hex
         ext = mimetypes.guess_extension(mime) or Path(filename or "").suffix or ".bin"
         if not filename:
-            filename = f"{doc.id}{ext}"
-        filename = _SAFE_NAME.sub("_", Path(filename).name)[:120] or f"{doc.id}{ext}"
+            filename = f"{type_id}{ext}"
+        filename = _SAFE_NAME.sub("_", Path(filename).name)[:120] or f"{type_id}{ext}"
         (self.storage_dir / f"{doc_id}.bin").write_bytes(content)
         meta = GeneratedDocument(
             id=doc_id,
-            type=doc.id,
-            title=doc.title,
+            type=type_id,
+            title=title,
             filename=filename,
             mime_type=mime,
             size=len(content),

@@ -6,12 +6,23 @@ from time import monotonic
 from starlette.responses import JSONResponse
 
 
+TOO_LARGE = "El mensaje es demasiado largo. Reduce el texto o inicia otra conversación."
+
+
 class RequestLimits:
-    def __init__(self, app, max_bytes=65536, concurrent=2, per_minute=30):
+    """Acota tamaño, concurrencia y frecuencia de todos los POST.
+
+    ``route_limits`` = {ruta: (bytes, mensaje)} da a rutas concretas (p. ej. la subida de
+    oficios) su propio tope de cuerpo; la concurrencia y el presupuesto por minuto son los
+    mismos para todas.
+    """
+
+    def __init__(self, app, max_bytes=65536, concurrent=2, per_minute=30, route_limits=None):
         self.app = app
         self.max_bytes = max_bytes
         self.concurrent = concurrent
         self.per_minute = per_minute
+        self.route_limits = dict(route_limits or {})
         self.active = 0
         self.recent = deque()
 
@@ -31,6 +42,10 @@ class RequestLimits:
         self.active += 1
         self.recent.append(now)
         try:
+            max_bytes, too_large = self.route_limits.get(scope.get("path", ""), (self.max_bytes, TOO_LARGE))
+            declared = dict(scope.get("headers") or []).get(b"content-length")
+            if declared is not None and declared.isdigit() and int(declared) > max_bytes:
+                return await reject(413, too_large)  # sin leer un cuerpo que ya sabemos excesivo
             # Lee y acota también cuerpos chunked antes de que el parser JSON los cargue.
             body = bytearray()
             while True:
@@ -38,8 +53,8 @@ class RequestLimits:
                 if message["type"] == "http.disconnect":
                     return
                 body.extend(message.get("body", b""))
-                if len(body) > self.max_bytes:
-                    return await reject(413, "El mensaje es demasiado largo. Reduce el texto o inicia otra conversación.")
+                if len(body) > max_bytes:
+                    return await reject(413, too_large)
                 if not message.get("more_body", False):
                     break
             delivered = False

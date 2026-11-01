@@ -267,6 +267,59 @@ textarea::placeholder, input::placeholder { color: var(--muted); opacity: 1; }
   .composer textarea { max-height: 72px; }
 }
 
+/* Adjuntar oficio (dictamen técnico) */
+.attach {
+  flex: none; display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 11px; color: var(--accent);
+}
+.attach:hover:not(:disabled) { background: var(--surface-subtle); border-color: var(--accent); }
+.attach:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.attach:disabled { opacity: .45; cursor: default; }
+.attach[hidden] { display: none; }
+body.dropping .composer { border: 2px dashed var(--accent); background: var(--surface-subtle); }
+
+/* Tarjeta de dictamen técnico (misma base que .confirm-card) */
+.dictamen-card fieldset { border: 0; padding: 0; margin: 14px 0 0; min-width: 0; }
+.dictamen-card legend {
+  padding: 0; margin-bottom: 8px; font-size: 12px; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; color: var(--accent);
+}
+.dictamen-card legend .count { color: var(--muted); font-weight: 600; }
+.dictamen-card .fields { margin-top: 0; }
+.dictamen-card .field.wide { grid-column: 1 / -1; }
+.dictamen-card .hint { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.dictamen-card .hint:empty { display: none; }
+.dictamen-card input.missing { border-color: var(--err); background: #fdf3f2; }
+.dictamen-card input:disabled { background: var(--bg); color: var(--ink); }
+.dictamen-card .equipos-wrap { position: relative; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.bubble .dictamen-card table.equipos { margin: 0; font-size: 13px; }
+.bubble .dictamen-card .equipos th, .bubble .dictamen-card .equipos td { border: 0; border-top: 1px solid var(--line); padding: 4px; vertical-align: middle; }
+.bubble .dictamen-card .equipos thead th { border-top: 0; font-size: 11.5px; font-weight: 600; color: var(--muted); white-space: nowrap; padding: 6px 4px; }
+.dictamen-card .equipos th.req::after { content: " *"; color: var(--accent); }
+.dictamen-card .equipos .n { width: 28px; text-align: center; color: var(--muted); }
+.dictamen-card .equipos input { width: 100%; min-width: 100px; padding: 5px 6px; font-size: 13px; }
+.dictamen-card .equipos input[data-name="tipo_equipo"], .dictamen-card .equipos input[data-name="numero_serie"] { min-width: 190px; }
+.dictamen-card .equipos input[data-name="modelo"], .dictamen-card .equipos input[data-name="numero_inventario"] { min-width: 150px; }
+.dictamen-card .equipos input[data-name="motivo"] { min-width: 170px; }
+.dictamen-card .equipos .remove { padding: 3px 8px; font-size: 12px; border-radius: 8px; }
+.dictamen-card .equipos-empty { padding: 12px; font-size: 13px; color: var(--muted); }
+.dictamen-card .equipos-empty.missing { color: var(--err); background: #fdf3f2; }
+.dictamen-card .add { margin-top: 8px; font-size: 13px; padding: 6px 10px; }
+.dictamen-card .confirm-actions { flex-wrap: wrap; }
+.dictamen-card .confirm-actions [hidden] { display: none; }
+.dictamen-card .confirm-msg.pending { color: var(--muted); }
+.dictamen-card .confirm-msg.warn { color: var(--warn); }
+.dictamen-card.is-done, .dictamen-card.is-cancelled { border-color: var(--line); background: var(--bg); }
+.dictamen-card.is-cancelled { opacity: .7; }
+.ghost:disabled { opacity: .5; cursor: default; }
+.ghost:disabled:hover { border-color: var(--line); color: var(--ink); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Teléfonos angostos: 📎 y micrófono un poco más chicos para dejar espacio al texto. */
+@media (max-width: 400px) {
+  .attach, .voice-button { width: 40px; height: 40px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .typing::after, .spinner { animation: none; }
 }
